@@ -1,0 +1,1 @@
+Verification checkpoint: main is unchanged. Repair branch integrates batch9_fixed (951-1000), explicit action-tool rendering, and a corrected 1-1000 literal ID verifier. A smoke-test script is included for the repaired 956-1000 batch.
