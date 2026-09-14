@@ -1,0 +1,3 @@
+STATUS: 956-1000 functional replacement prepared on isolated repair branch.
+NEXT: integrate batch9_fixed into tools850/index.ts only after fetching its current SHA and validating the branch build.
+MAIN: unchanged by this repair branch.
