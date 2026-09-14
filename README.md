@@ -14,15 +14,15 @@ An all-in-one developer workspace featuring **1,000 interactive developer tools*
   - **Data & APIs:** CSV to JSON & JSON to CSV Converters, SQL Query Formatter, Fake Data Generator, HTTP Status Codes Reference, Cron Expression Generator.
   - **Comprehensive Developer Suite (Tools 151–1000):** 850 dynamic specialized developer utilities covering modern text processing, encoding, networking, cloud, DevOps, mathematical algorithms, and systems engineering.
 - **⚡ Live Code Editor & Multi-Language Runner:**
-  - In-browser interactive sandbox for HTML, CSS, and JavaScript with infinite-loop protection and live console.
-  - Server-side multi-language runner powered by Gemini for 48 languages (Python, C++, Rust, Go, Java, TypeScript, Bash, PHP, Ruby, Kotlin, Swift, SQL, etc.).
+  - In-browser interactive sandbox for HTML, CSS, and JavaScript with console output.
+  - Server/API-backed **virtual AI-assisted execution** for 48 languages (Python, C++, Rust, Go, Java, TypeScript, Bash, PHP, Ruby, Kotlin, Swift, SQL, etc.). This is not a native compiler farm; execution results are AI-assisted and should be validated before production use.
   - File drag-and-drop & local file import support.
   - Bidirectional wiring with the AI Assistant ("Apply Code to Editor").
 - **🤖 Coding Super AI (Copilot):**
   - Context-aware coding assistant powered by `@google/genai` (with dynamic fallback pool across `gemini-3.8-flash`, `gemini-flash-latest`, and `gemini-3.1-flash-lite`).
   - Markdown rendering with syntax highlighting, one-click code copy, and direct editor insertion.
 - **📄 Complete Codebase PDF Export:**
-  - Built-in PDFKit generator creating a 191-page comprehensive vector PDF with line numbers, code gutter, and architecture overview.
+  - Built-in PDFKit generator creating a comprehensive vector PDF with line numbers, code gutter, and architecture overview.
   - Downloadable via top navigation bar (`Code PDF`) or `/api/download/codebase-pdf`.
 - **🎨 Modern UI & UX:**
   - Clean light and dark mode toggles.
@@ -92,7 +92,7 @@ The repository includes a ready-to-use GitHub Actions workflow (`.github/workflo
 3. Under **Build and deployment** > **Source**, select **`GitHub Actions`** (instead of "Deploy from a branch").
 4. Go to the **Actions** tab. You will see the **Deploy to GitHub Pages** workflow run automatically.
 5. Once complete, your site will be live at `https://<your-username>.github.io/<repo-name>/`!
-> *Note: On static GitHub Pages, all 1,000 client-side developer tools, HTML/CSS/JS sandbox, and 48 language starters work 100% offline. To enable the AI Copilot on static hosting, simply input your Gemini API key in the panel settings.*
+> *Note: The core tool UI and the HTML/CSS/JS sandbox can work without a backend. Network-dependent features such as AI, the virtual multi-language runner, and external-data tools require the configured backend/network connection. A Gemini API key may be entered in the AI panel for supported hosting modes.*
 
 ---
 
