@@ -126,6 +126,19 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
                 className="w-full text-xs font-mono p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
+        ) : tool.inputType === "select-text" ? (
+          <div>
+            {tool.label1 && <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{tool.label1}</label>}
+            <select
+              value={val1}
+              onChange={(e) => { const v = e.target.value; setVal1(v); execute(v, val2); }}
+              className="w-full text-xs p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {(tool.options || []).map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
         ) : (
           <div>
             {tool.label1 && <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{tool.label1}</label>}
