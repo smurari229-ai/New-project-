@@ -1,0 +1,1 @@
+Repair branch created to safely repair tools 956-1000. Original main branch remains unchanged. Existing batch9_master_finishing.ts is intentionally preserved as a rollback reference; batch9_fixed.ts is the intended replacement once index.ts is updated after verification.
