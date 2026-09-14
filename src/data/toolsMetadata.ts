@@ -1,4 +1,7 @@
-export const ALL_TOOLS_METADATA = [
+import { DYNAMIC_METADATA_LIST } from "./tools850";
+import { ToolMetadata } from "../types";
+
+export const STATIC_TOOLS_METADATA = [
   {
     "id": 2,
     "title": "Text Case Converter",
@@ -1408,3 +1411,17 @@ export const ALL_TOOLS_METADATA = [
     ]
   }
 ] as const;
+
+export const TOOL_1_METADATA: ToolMetadata = {
+  id: 1,
+  title: "Multi-Language Code Sandbox & Live Editor",
+  category: "Code",
+  description: "Interactive live code editor for HTML/CSS/JS and multi-language virtual compiler.",
+  keywords: ["editor", "sandbox", "compiler", "ide", "run", "python", "html", "js"]
+};
+
+export const ALL_TOOLS_METADATA: ToolMetadata[] = [
+  TOOL_1_METADATA,
+  ...STATIC_TOOLS_METADATA,
+  ...DYNAMIC_METADATA_LIST,
+];

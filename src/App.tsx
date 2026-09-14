@@ -8,9 +8,11 @@ import { ToolsTextFormat } from "./components/tools/ToolsTextFormat";
 import { ToolsMathCalculators } from "./components/tools/ToolsMathCalculators";
 import { ToolsDataWeb } from "./components/tools/ToolsDataWeb";
 import { ToolsAdvancedDev } from "./components/tools/ToolsAdvancedDev";
+import { DynamicToolsRenderer } from "./components/tools/DynamicToolsRenderer";
 import { ToolCategory } from "./types";
 import { safeStorageGet, safeStorageSet } from "./utils/helpers";
 import { ALL_TOOLS_METADATA } from "./data/toolsMetadata";
+import { LANGUAGE_CATALOG } from "./data/languages";
 import {
   Wrench,
   Sparkles,
@@ -79,7 +81,7 @@ export default function App() {
   // Dynamically compute category counts from tools registry
   const dynamicCategoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
-      All: ALL_TOOLS_METADATA.length + 1, // +1 for Code Editor
+      All: ALL_TOOLS_METADATA.length,
     };
     for (const t of ALL_TOOLS_METADATA) {
       counts[t.category] = (counts[t.category] || 0) + 1;
@@ -99,7 +101,9 @@ export default function App() {
         t.title.toLowerCase().includes(q) ||
         t.category.toLowerCase().includes(q) ||
         `#${t.id}`.includes(q) ||
-        t.keywords.some((k) => k.toLowerCase().includes(q))
+        String(t.id) === q ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.keywords && t.keywords.some((k) => k.toLowerCase().includes(q)))
       );
     }).length;
   }, [searchQuery, selectedCategory]);
@@ -160,6 +164,8 @@ export default function App() {
   }, []);
 
   const handleSendCodeToAI = (code: string, language: string, promptText?: string) => {
+    setActiveCode(code);
+    setActiveLanguage(language);
     const query =
       promptText ||
       `Please review, explain, and optimize the following ${language} code:\n\n\`\`\`${language.toLowerCase()}\n${code}\n\`\`\``;
@@ -195,7 +201,7 @@ export default function App() {
         onSelectCategory={setSelectedCategory}
         onOpenShortcuts={() => setShowShortcuts(true)}
         categoryCounts={dynamicCategoryCounts}
-        totalTools={ALL_TOOLS_METADATA.length + 1}
+        totalTools={ALL_TOOLS_METADATA.length}
         onJumpToSection={scrollToSection}
       />
 
@@ -212,12 +218,12 @@ export default function App() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              150+ Coding Tools, Multi-Language Sandbox & AI Assistant
+              {ALL_TOOLS_METADATA.length.toLocaleString()} Developer Tools, Multi-Language Sandbox & AI Assistant
             </h1>
 
             <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed">
               Instantly format, convert, test, encrypt, and debug code. Includes a live
-              in-browser execution sandbox for 65+ programming languages, plus Gemini AI coding copilot.
+              in-browser execution sandbox for {LANGUAGE_CATALOG.length} programming languages, plus Gemini AI coding copilot.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -233,7 +239,7 @@ export default function App() {
                 onClick={() => scrollToSection("all-tools-grid")}
                 className="px-4 py-2.5 bg-blue-700/60 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition"
               >
-                Browse 150+ Tools
+                Browse {ALL_TOOLS_METADATA.length.toLocaleString()} Tools
               </button>
               <button
                 type="button"
@@ -249,16 +255,16 @@ export default function App() {
           {/* Quick Metrics Bar in Hero */}
           <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
-              <div className="text-xl sm:text-2xl font-black text-white">150+</div>
+              <div className="text-xl sm:text-2xl font-black text-white">{ALL_TOOLS_METADATA.length.toLocaleString()}</div>
               <div className="text-xs text-blue-200">Developer Tools</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
-              <div className="text-xl sm:text-2xl font-black text-white">65+</div>
+              <div className="text-xl sm:text-2xl font-black text-white">{LANGUAGE_CATALOG.length}</div>
               <div className="text-xs text-blue-200">Supported Languages</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
-              <div className="text-xl sm:text-2xl font-black text-white">Gemini 2.5</div>
-              <div className="text-xs text-blue-200">Server AI Engine</div>
+              <div className="text-xl sm:text-2xl font-black text-white">AI Copilot</div>
+              <div className="text-xs text-blue-200">Gemini-Powered</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
               <div className="text-xl sm:text-2xl font-black text-white">100%</div>
@@ -276,7 +282,7 @@ export default function App() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-500 transition flex items-center space-x-1.5"
             >
               <Wrench className="w-3.5 h-3.5 text-blue-500" />
-              <span>150 Tools Grid</span>
+              <span>1,000 Tools Grid</span>
             </button>
             <button
               type="button"
@@ -300,7 +306,7 @@ export default function App() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-500 transition flex items-center space-x-1.5"
             >
               <Globe2 className="w-3.5 h-3.5 text-emerald-500" />
-              <span>65+ Languages</span>
+              <span>48 Languages</span>
             </button>
           </div>
         </div>
@@ -312,6 +318,7 @@ export default function App() {
             <CodeEditor
               onSendToAI={handleSendCodeToAI}
               initialLanguage={activeLanguage}
+              selectedLanguage={activeLanguage}
               onLanguageChange={setActiveLanguage}
               registerActiveCodeGetter={(fn) => {
                 activeCodeGetterRef.current = fn;
@@ -350,14 +357,14 @@ export default function App() {
           onAskAI={handleAskAIFromHub}
         />
 
-        {/* 150+ Tools Section */}
-        <section id="all-tools-grid" className="space-y-4 pt-4">
+        {/* 1,000+ Tools Section */}
+        <section id="all-tools-grid" className="space-y-6 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center space-x-2">
                 <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Developer Toolbox (Tools 2 – 150)
+                  Developer Toolbox ({ALL_TOOLS_METADATA.length.toLocaleString()} Production Tools)
                 </h2>
                 <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   {selectedCategory === "All" ? "All Categories" : selectedCategory}
@@ -424,7 +431,7 @@ export default function App() {
                     onClick={() => setSelectedCategory("All")}
                     className="px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-300 dark:border-slate-700 transition"
                   >
-                    View All Categories (150 tools)
+                    View All Categories (1,000 tools)
                   </button>
                 )}
               </div>
@@ -463,27 +470,35 @@ export default function App() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {/* Tools 2 - 20 (Text, Formatting, Conversion, Hashes) */}
-              <ToolsTextFormat
-                searchQuery={searchQuery}
-                selectedCategory={selectedCategory}
-              />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {/* Tools 2 - 20 (Text, Formatting, Conversion, Hashes) */}
+                <ToolsTextFormat
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-              {/* Tools 21 - 50 (Math, Calculations, Financial, Conversion) */}
-              <ToolsMathCalculators
-                searchQuery={searchQuery}
-                selectedCategory={selectedCategory}
-              />
+                {/* Tools 21 - 50 (Math, Calculations, Financial, Conversion) */}
+                <ToolsMathCalculators
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-              {/* Tools 51 - 100 (Data, Web, CSS, JSON, SEO, Dev Cheat Sheets) */}
-              <ToolsDataWeb
-                searchQuery={searchQuery}
-                selectedCategory={selectedCategory}
-              />
+                {/* Tools 51 - 100 (Data, Web, CSS, JSON, SEO, Dev Cheat Sheets) */}
+                <ToolsDataWeb
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-              {/* Tools 101 - 150 (Diff, Ciphers, Advanced Crypto, Modern CSS & JS Snippets) */}
-              <ToolsAdvancedDev
+                {/* Tools 101 - 150 (Diff, Ciphers, Advanced Crypto, Modern CSS & JS Snippets) */}
+                <ToolsAdvancedDev
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
+              </div>
+
+              {/* Tools 151 - 1000 (850 New Interactive Developer Tools) */}
+              <DynamicToolsRenderer
                 searchQuery={searchQuery}
                 selectedCategory={selectedCategory}
               />
@@ -527,7 +542,7 @@ export default function App() {
               onClick={() => scrollToSection("all-tools-grid")}
               className="hover:text-blue-600 transition"
             >
-              150 Tools
+              1,000 Tools
             </button>
             <button
               type="button"
@@ -546,7 +561,7 @@ export default function App() {
             </a>
           </div>
           <p>
-            Coding Super Hub &bull; 150+ developer tools, real-time code sandbox & Gemini AI integration.
+            Coding Super Hub &bull; {ALL_TOOLS_METADATA.length.toLocaleString()} developer tools, real-time code sandbox & Gemini AI integration.
           </p>
         </footer>
       </main>

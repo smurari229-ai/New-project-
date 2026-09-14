@@ -195,7 +195,7 @@ export const LANGUAGE_CATALOG: LanguageInfo[] = [
     category: "Documentation",
     extension: ".md",
     description: "Lightweight markup language with plain text formatting syntax for documentation and README files.",
-    starterCode: `# 🚀 Coding Super Hub\n\nAll-in-one developer toolbox featuring:\n- **150+ Interactive Coding Tools**\n- **Multi-language Sandbox Editor**\n- **Coding Super AI Copilot**\n- **Comprehensive Languages Hub**`,
+    starterCode: `# 🚀 Coding Super Hub\n\nAll-in-one developer toolbox featuring:\n- **1,000 Interactive Coding Tools**\n- **Multi-language Sandbox Editor**\n- **Coding Super AI Copilot**\n- **Comprehensive Languages Hub**`,
   },
   {
     name: "Dockerfile",

@@ -42,9 +42,12 @@ const CATEGORIES: ToolCategory[] = [
   "HTML",
   "CSS",
   "JavaScript",
+  "Code",
   "API",
   "Data",
   "DevOps",
+  "AI",
+  "Audio",
   "Utilities",
   "Miscellaneous",
 ];
@@ -83,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                All-in-one developer workspace, editor, and 65+ language hub
+                All-in-one developer workspace, editor, and 48 language hub
               </p>
             </div>
           </div>
@@ -113,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               onClick={() => onJumpToSection?.("languages-hub-section")}
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition"
-              title="Jump to 65+ Languages Hub"
+              title="Jump to 48 Languages Hub"
             >
               <Globe2 className="w-3.5 h-3.5" />
               <span>Languages</span>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LANGUAGE_CATALOG } from "../data/languages";
 import { LanguageInfo } from "../types";
+import { safeCopyToClipboard } from "../utils/helpers";
 import {
   Globe2,
   Search,
@@ -27,6 +28,17 @@ export const LanguageHub: React.FC<LanguageHubProps> = ({
   );
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    if (!selectedLanguage) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedLanguage(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedLanguage]);
+
   const filtered = LANGUAGE_CATALOG.filter((item) => {
     const q = search.toLowerCase().trim();
     return (
@@ -36,11 +48,13 @@ export const LanguageHub: React.FC<LanguageHubProps> = ({
     );
   });
 
-  const handleCopyCode = (code?: string) => {
+  const handleCopyCode = async (code?: string) => {
     if (!code) return;
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const ok = await safeCopyToClipboard(code);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   };
 
   const handleUseInEditor = (lang: LanguageInfo) => {

@@ -251,6 +251,7 @@ export const ToolsMathCalculators: React.FC<ToolsProps> = ({
                   t22Input
                 )}`}
                 alt="QR Code"
+                referrerPolicy="no-referrer"
                 className="w-36 h-36 border border-slate-200 dark:border-slate-800 rounded-lg p-1 bg-white shadow-xs"
               />
               <span className="text-[11px] text-slate-500 mt-2 font-mono break-all text-center">

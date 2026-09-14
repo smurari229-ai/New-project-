@@ -1,0 +1,157 @@
+# Coding Super Hub 🚀
+
+An all-in-one developer workspace featuring **1,000 interactive developer tools**, a **multi-language code runner supporting 48 programming languages**, an **intelligent AI coding copilot powered by Gemini**, and full source export utilities (including a complete 191-page PDF documentation).
+
+---
+
+## ✨ Features
+
+- **🛠️ 1,000 Full-Featured Developer Tools:**
+  - **Text & Formatting:** JSON Formatter/Validator, Base64 Encoder/Decoder, URL Encoder/Decoder, Markdown Previewer, Regex Tester, Slug Generator, Text Diff Checker, Case Converters, and more.
+  - **Security & Cryptography:** SHA-256 / SHA-512 / MD5 Hash Generators, UUID v4 Generator, HMAC Generator, AES & RSA Key Generators, JWT Token Decoder.
+  - **Math & Calculators:** Unit Converters, Binary/Hex/Octal Number Base Converter, Timestamp/Epoch Converter, Percentage Calculator, Aspect Ratio Calculator.
+  - **Web & CSS Utilities:** Color Picker & Palette Generator, CSS Flexbox & Grid Generator, Box Shadow Generator, Gradient Generator, Meta Tag Generator, Minifiers (HTML, CSS, JS).
+  - **Data & APIs:** CSV to JSON & JSON to CSV Converters, SQL Query Formatter, Fake Data Generator, HTTP Status Codes Reference, Cron Expression Generator.
+  - **Comprehensive Developer Suite (Tools 151–1000):** 850 dynamic specialized developer utilities covering modern text processing, encoding, networking, cloud, DevOps, mathematical algorithms, and systems engineering.
+- **⚡ Live Code Editor & Multi-Language Runner:**
+  - In-browser interactive sandbox for HTML, CSS, and JavaScript with infinite-loop protection and live console.
+  - Server-side multi-language runner powered by Gemini for 48 languages (Python, C++, Rust, Go, Java, TypeScript, Bash, PHP, Ruby, Kotlin, Swift, SQL, etc.).
+  - File drag-and-drop & local file import support.
+  - Bidirectional wiring with the AI Assistant ("Apply Code to Editor").
+- **🤖 Coding Super AI (Copilot):**
+  - Context-aware coding assistant powered by `@google/genai` (with dynamic fallback pool across `gemini-3.8-flash`, `gemini-flash-latest`, and `gemini-3.1-flash-lite`).
+  - Markdown rendering with syntax highlighting, one-click code copy, and direct editor insertion.
+- **📄 Complete Codebase PDF Export:**
+  - Built-in PDFKit generator creating a 191-page comprehensive vector PDF with line numbers, code gutter, and architecture overview.
+  - Downloadable via top navigation bar (`Code PDF`) or `/api/download/codebase-pdf`.
+- **🎨 Modern UI & UX:**
+  - Clean light and dark mode toggles.
+  - Real-time search and category filtering with instant empty-state suggestions.
+  - Keyboard shortcuts modal (`?`).
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React 19, TypeScript, Tailwind CSS v4, Lucide React, React Markdown.
+- **Build Tool:** Vite 6.
+- **Backend:** Node.js, Express 4.
+- **AI Engine:** Google GenAI SDK (`@google/genai`).
+- **PDF Generation:** PDFKit.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone the repository
+```bash
+git clone <your-repository-url>
+cd coding-super-hub
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+Copy the example environment file and set your Gemini API key:
+```bash
+cp .env.example .env
+```
+Edit `.env`:
+```env
+GEMINI_API_KEY="your-gemini-api-key-here"
+```
+
+### 4. Run development server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 5. Production build
+```bash
+npm run build
+npm start
+```
+
+### 6. Generate Complete Codebase PDF
+```bash
+npm run generate:pdf
+```
+
+---
+
+## 🌐 Deployment Guide (GitHub Pages, Vercel, Render)
+
+### Option A: GitHub Pages (Automatic with GitHub Actions)
+The repository includes a ready-to-use GitHub Actions workflow (`.github/workflows/deploy.yml`):
+1. Push this code to your GitHub repository.
+2. On GitHub, navigate to **Settings** > **Pages**.
+3. Under **Build and deployment** > **Source**, select **`GitHub Actions`** (instead of "Deploy from a branch").
+4. Go to the **Actions** tab. You will see the **Deploy to GitHub Pages** workflow run automatically.
+5. Once complete, your site will be live at `https://<your-username>.github.io/<repo-name>/`!
+> *Note: On static GitHub Pages, all 1,000 client-side developer tools, HTML/CSS/JS sandbox, and 48 language starters work 100% offline. To enable the AI Copilot on static hosting, simply input your Gemini API key in the panel settings.*
+
+---
+
+### Option B: Free Full-Stack Hosting on Render
+To run both the **Frontend and the Node.js / Gemini AI backend**:
+1. Create a free account at [render.com](https://render.com).
+2. Click **New +** > **Web Service** and connect your GitHub repository.
+3. Render will automatically detect the included `render.yaml`:
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+4. Add environment variable `GEMINI_API_KEY` in Render settings.
+5. Click **Deploy Web Service**!
+
+---
+
+### Option C: 1-Click Deploy on Vercel
+1. Go to [vercel.com](https://vercel.com) and click **Add New...** > **Project**.
+2. Select your GitHub repository.
+3. Vercel will automatically detect Vite using the included `vercel.json`.
+4. Click **Deploy**.
+
+---
+
+## ❓ Troubleshooting: "Website Chalu Nahi Ho Raha"
+
+| Problem | Cause | Solution |
+|---|---|---|
+| **Directly opening `index.html` shows a blank white page** | Modern React/Vite applications require a bundler server; `file:///` URLs cannot execute raw `.tsx` or modules. | Open terminal in the project folder and run `npm install` then `npm run dev`. Then open `http://localhost:3000`. |
+| **GitHub Pages shows 404 or Blank Page** | GitHub Pages source was set to "Deploy from a branch" instead of "GitHub Actions", or base path was missing. | Go to **Repo Settings > Pages > Source** and choose **GitHub Actions**. Also, `base: './'` is now configured in `vite.config.ts`. |
+| **`npm start` fails locally right after cloning** | `dist/server.cjs` hasn't been built yet. | For development, always use **`npm run dev`**. For production start, run **`npm run build`** first, then **`npm start`**. |
+| **Port 3000 is already in use** | Another local process is using port 3000. | Change port in `server.ts` or kill the process: `kill -9 $(lsof -t -i:3000)`. |
+
+---
+
+## 📁 Project Structure
+
+```
+├── public/                 # Static assets and generated PDF documentation
+├── scripts/                # Utility scripts (PDF generator, build helpers)
+├── src/
+│   ├── components/         # UI components
+│   │   ├── tools/          # 1,000 developer tool modules
+│   │   ├── AIAssistant.tsx # Copilot chat with Markdown & Editor sync
+│   │   ├── CodeEditor.tsx  # Code editor and multi-language runner
+│   │   ├── LanguageHub.tsx # 48 languages starter library
+│   │   ├── Navbar.tsx      # Search, category filter & navigation
+│   │   └── ToolCard.tsx    # Reusable tool container
+│   ├── data/               # Languages catalogue & tools metadata
+│   ├── utils/              # Conversion, crypto, and string helpers
+│   ├── App.tsx             # Main application orchestrator
+│   ├── main.tsx            # React entry point
+│   ├── types.ts            # Global TypeScript definitions
+│   └── index.css           # Tailwind v4 styles
+├── server.ts               # Express server with Vite middleware & Gemini endpoints
+├── package.json            # Project manifest
+└── vite.config.ts          # Vite configuration
+```
+
+---
+
+## 📄 License
+MIT License. Free to use and customize!

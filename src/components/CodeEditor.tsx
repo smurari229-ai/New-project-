@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { LANGUAGE_CATALOG } from "../data/languages";
+import { safeCopyToClipboard, safeStorageGet } from "../utils/helpers";
 
 interface CodeEditorProps {
   onSendToAI?: (code: string, language: string, promptText?: string) => void;
@@ -284,21 +285,38 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         {
           id: Math.random().toString(36).substring(2, 9),
           type: "system",
-          text: `▶ Compiling & Executing ${currentLang} script...`,
+          text: `▶ Running ${currentLang} via simulated virtual execution engine (AI-powered)...`,
           time: nowStr,
         },
       ]);
 
       try {
+        const customApiKey = safeStorageGet("csh_custom_key") || undefined;
         const res = await fetch("/api/code/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             language: currentLang,
             code: codeToRun,
+            customApiKey,
           }),
         });
-        const data = await res.json();
+        let data: any;
+        try {
+          data = await res.json();
+        } catch {
+          if (res.status === 404) {
+            data = {
+              stdout: "",
+              stderr: "Notice: The backend multi-language execution server is not running on this static host (e.g. GitHub Pages). HTML/CSS/JS sandbox executes 100% in your browser. For Python/C++/Go execution, run the app locally with 'npm run dev' or deploy to Render/Railway.",
+              exitCode: 1,
+              executionTime: "0.00s",
+              notes: "Static Host (No Backend)",
+            };
+          } else {
+            throw new Error(`Server returned HTTP status ${res.status}`);
+          }
+        }
 
         const newLogs: ConsoleLogItem[] = [];
         if (data.notes) {
@@ -354,16 +372,18 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     let fullBundle: string;
     if (isWebLanguage(currentLang)) {
       fullBundle = `<!-- HTML -->\n${htmlCode}\n\n/* CSS */\n${cssCode}\n\n// JavaScript\n${jsCode}`;
     } else {
       fullBundle = getCurrentCode();
     }
-    navigator.clipboard.writeText(fullBundle);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const ok = await safeCopyToClipboard(fullBundle);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   };
 
   const isTextLanguage = (langName: string): boolean => {
@@ -394,11 +414,44 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     return false;
   };
 
+  const getExportFileName = (langName: string, tab: string): string => {
+    const l = langName.toLowerCase().trim();
+    if (l === "html") {
+      if (tab === "html") return "index.html";
+      if (tab === "css") return "styles.css";
+      return "script.js";
+    }
+    const extMap: Record<string, string> = {
+      python: "main.py",
+      javascript: "script.js",
+      typescript: "index.ts",
+      "c++": "main.cpp",
+      c: "main.c",
+      "c#": "Program.cs",
+      java: "Main.java",
+      rust: "main.rs",
+      go: "main.go",
+      php: "index.php",
+      ruby: "main.rb",
+      swift: "main.swift",
+      kotlin: "Main.kt",
+      bash: "script.sh",
+      sql: "query.sql",
+      json: "data.json",
+      markdown: "document.md",
+      yaml: "config.yaml",
+      html: "index.html",
+      css: "styles.css",
+    };
+    if (extMap[l]) return extMap[l];
+    return isTextLanguage(langName)
+      ? "notes.txt"
+      : `${l.replace(/[^a-z0-9]/gi, "_") || "code"}.txt`;
+  };
+
   const handleExportFile = () => {
     const currentCode = getCurrentCode();
-    const isText = isTextLanguage(currentLang);
-    const ext = isText ? "txt" : "code";
-    const fileName = `code.${ext}`;
+    const fileName = getExportFileName(currentLang, activeTab);
 
     const blob = new Blob([currentCode], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -510,12 +563,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   useEffect(() => {
-    if (initialLanguage && initialLanguage !== internalLang) {
-      setInternalLang(initialLanguage);
-      loadLanguageStarter(initialLanguage);
+    const target = selectedLanguage || initialLanguage;
+    if (target && target !== internalLang) {
+      setInternalLang(target);
+      loadLanguageStarter(target);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialLanguage]);
+  }, [selectedLanguage, initialLanguage]);
 
   const loadLanguageStarter = (langName: string) => {
     const found = LANGUAGE_CATALOG.find(
@@ -616,13 +670,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   : "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800"
               }`}
             >
-              {isWebLanguage(currentLang) ? "Web Sandbox" : "AI Multi-Language Runner"}
+              {isWebLanguage(currentLang) ? "Native In-Browser Sandbox" : "AI Virtual Simulation Runner"}
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {isWebLanguage(currentLang)
               ? "Live browser execution for HTML, CSS & JavaScript with console interceptor"
-              : `Write & run ${currentLang} with virtual compiler output & stdout/stderr console`}
+              : `Simulated execution for ${currentLang} via AI virtual compiler engine with stdout/stderr`}
           </p>
         </div>
 

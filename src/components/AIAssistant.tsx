@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Markdown from "react-markdown";
 import { AIChatMessage } from "../types";
-import { safeStorageGet, safeStorageSet, safeStorageRemove } from "../utils/helpers";
+import { safeStorageGet, safeStorageSet, safeStorageRemove, safeCopyToClipboard } from "../utils/helpers";
 import {
   Bot,
   Sparkles,
@@ -75,7 +75,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       setMessages([
         {
           role: "bot",
-          text: `👋 Hello! I am **Coding Super AI**, your developer copilot for **Coding Super Hub**.\n\nI can:\n- 🛠 **Debug and fix code** from your live editor\n- 📖 **Explain complex algorithms** and modern syntax\n- ⚡ **Generate production-ready code** in 40+ programming languages\n- 🔄 **Refactor and optimize performance**\n\nTry clicking **Explain Code**, **Fix Current Code**, or type any coding question below!`,
+          text: `👋 Hello! I am **Coding Super AI**, your developer copilot for **Coding Super Hub**.\n\nI can:\n- 🛠 **Debug and fix code** from your live editor\n- 📖 **Explain complex algorithms** and modern syntax\n- ⚡ **Generate production-ready code** in 48 programming languages\n- 🔄 **Refactor and optimize performance**\n\nTry clicking **Explain Code**, **Fix Current Code**, or type any coding question below!`,
           timestamp: Date.now(),
         },
       ]);
@@ -132,7 +132,18 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         }),
       });
 
-      const data = await res.json();
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        if (res.status === 404) {
+          throw new Error(
+            "Backend server is not running on this static deployment. All 1,000 tools work offline in your browser! To enable AI Copilot, enter your free Gemini API key in the panel settings above, or run the app with 'npm run dev'."
+          );
+        }
+        throw new Error(`Server returned HTTP status ${res.status}`);
+      }
+
       if (!res.ok) {
         throw new Error(data.error || "Failed to reach AI service");
       }
@@ -210,10 +221,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     setStatusMsg("Chat history cleared.");
   };
 
-  const copyMessage = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 1500);
+  const copyMessage = async (text: string, index: number) => {
+    const ok = await safeCopyToClipboard(text);
+    if (ok) {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    }
   };
 
   return (
@@ -331,18 +344,20 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                                 <div className="flex items-center space-x-1.5">
                                   <button
                                     type="button"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(codeString);
-                                      setStatusMsg("Code block copied to clipboard!");
-                                      setTimeout(
-                                        () =>
-                                          setStatusMsg(
-                                            "Ready: Powered by Gemini AI via full-stack server integration."
-                                          ),
-                                        2000
-                                      );
+                                    onClick={async () => {
+                                      const ok = await safeCopyToClipboard(codeString);
+                                      if (ok) {
+                                        setStatusMsg("Code block copied to clipboard!");
+                                        setTimeout(
+                                          () =>
+                                            setStatusMsg(
+                                              "Ready: Powered by Gemini AI via full-stack server integration."
+                                            ),
+                                          2000
+                                        );
+                                      }
                                     }}
-                                    className="flex items-center space-x-1 px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] transition"
+                                    className="flex items-center space-x-1 px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] transition cursor-pointer"
                                     title="Copy code snippet"
                                   >
                                     <Copy className="w-3 h-3" />

@@ -257,3 +257,37 @@ export function safeStorageRemove(key: string): void {
     // Gracefully handle iframe or restricted cookie exceptions
   }
 }
+
+export async function safeCopyToClipboard(text: string): Promise<boolean> {
+  if (!text) return false;
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fallback to execCommand if navigator.clipboard is rejected or restricted
+  }
+
+  try {
+    if (typeof document !== "undefined") {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "0";
+      textarea.style.left = "0";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return success;
+    }
+  } catch {
+    // fallback failed
+  }
+  return false;
+}
+

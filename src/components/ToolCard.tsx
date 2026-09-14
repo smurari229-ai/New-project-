@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ToolCategory } from "../types";
 import { Copy, Check } from "lucide-react";
+import { safeCopyToClipboard } from "../utils/helpers";
 
 interface ToolCardProps {
   id: number;
@@ -28,9 +29,12 @@ const CATEGORY_COLORS: Record<string, string> = {
   HTML: "bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/20",
   CSS: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20",
   JavaScript: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 border-yellow-500/20",
+  Code: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
   API: "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/20",
   Data: "bg-lime-500/10 text-lime-700 dark:text-lime-300 border-lime-500/20",
   DevOps: "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20",
+  AI: "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20",
+  Audio: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
   Utilities: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
   Miscellaneous: "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20",
 };
@@ -47,12 +51,14 @@ export const ToolCard: React.FC<ToolCardProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const text = copyText || (typeof output === "string" ? output : "");
     if (!text) return;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const ok = await safeCopyToClipboard(text);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
   };
 
   const badgeColor =

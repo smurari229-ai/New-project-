@@ -14,10 +14,13 @@ export type ToolCategory =
   | "HTML"
   | "CSS"
   | "JavaScript"
+  | "Code"
   | "API"
   | "Data"
   | "DevOps"
   | "Utilities"
+  | "AI"
+  | "Audio"
   | "Miscellaneous";
 
 export interface ToolItem {
@@ -25,8 +28,10 @@ export interface ToolItem {
   title: string;
   category: ToolCategory;
   description?: string;
-  keywords?: string[];
+  keywords?: readonly string[] | string[];
 }
+
+export type ToolMetadata = ToolItem;
 
 export interface LanguageInfo {
   name: string;

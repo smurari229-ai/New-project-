@@ -123,7 +123,7 @@ export const ToolsDataWeb: React.FC<ToolsProps> = ({
 
   // Tool 73 - Meta Tag Generator
   const [t73Title, setT73Title] = useState("Coding Super Hub");
-  const [t73Desc, setT73Desc] = useState("150+ developer tools & AI coding assistant in one app");
+  const [t73Desc, setT73Desc] = useState("1,000 developer tools & AI coding assistant in one app");
   const [t73Out, setT73Out] = useState("");
 
   // Tool 74 - HTML Boilerplate Generator

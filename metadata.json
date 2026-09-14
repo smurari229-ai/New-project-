@@ -1,6 +1,6 @@
 {
   "name": "Coding Super Hub",
-  "description": "All-in-one developer toolbox featuring 150+ coding tools, multi-language code editor, programming language hub, and AI coding assistant.",
+  "description": "All-in-one developer toolbox featuring 1,000+ interactive coding tools, multi-language code editor sandbox, programming language hub, and AI coding assistant.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
