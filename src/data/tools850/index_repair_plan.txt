@@ -1,0 +1,1 @@
+Do not delete or renumber tools. Replace only the finishing-batch import in index.ts so IDs 951-1000 resolve to batch9_fixed. Keep batch9_master_finishing.ts untouched as rollback reference until production verification passes.
