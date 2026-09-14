@@ -275,8 +275,9 @@ export function safeStorageRemove(key: string): void {
       window.localStorage.removeItem(key);
     }
   } catch {
-    // Gracefully handle iframe or restricted cookie exceptions
+    // Gracefully handle restricted storage exceptions
   }
+}
 
 export async function safeCopyToClipboard(text: string): Promise<boolean> {
   if (!text) return false;
