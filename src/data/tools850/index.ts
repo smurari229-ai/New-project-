@@ -23,7 +23,36 @@ const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
   ...BATCH_9_FIXED_TOOLS,
 ];
 
-export const ALL_850_TOOLS: DynamicTool[] = RAW_DYNAMIC_TOOLS.map(repairDynamicTool);
+const REPAIRED_DYNAMIC_TOOLS = RAW_DYNAMIC_TOOLS.map(repairDynamicTool);
+
+const withRealRegistryVerifier = (tool: DynamicTool): DynamicTool => {
+  if (tool.id !== 1000) return tool;
+  return {
+    ...tool,
+    description: "Verifies the actual loaded registry for IDs 1-1000, duplicates, and missing entries.",
+    run: () => {
+      const ids = REPAIRED_DYNAMIC_TOOLS.map((item) => item.id);
+      const unique = new Set(ids);
+      const missing: number[] = [];
+      for (let id = 151; id <= 1000; id += 1) if (!unique.has(id)) missing.push(id);
+      const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index).filter((id, index, arr) => arr.indexOf(id) === index);
+      const expectedDynamicCount = 850;
+      const countOk = ids.length === expectedDynamicCount;
+      const rangeOk = ids.every((id) => id >= 151 && id <= 1000);
+      return [
+        "Coding Super Hub — Live Tool Registry Verification",
+        `Dynamic tools loaded: ${ids.length} / ${expectedDynamicCount}`,
+        `Expected IDs present: ${rangeOk && missing.length === 0 ? "YES" : "NO"}`,
+        `Duplicate dynamic IDs: ${duplicates.length ? duplicates.join(", ") : "none"}`,
+        `Missing dynamic IDs: ${missing.length ? missing.join(", ") : "none"}`,
+        `Registry result: ${countOk && rangeOk && duplicates.length === 0 && missing.length === 0 ? "PASS" : "FAIL"}`,
+        "Note: static tools 1-150 are verified separately by the application metadata/integrity checks.",
+      ].join("\n");
+    },
+  };
+};
+
+export const ALL_850_TOOLS: DynamicTool[] = REPAIRED_DYNAMIC_TOOLS.map(withRealRegistryVerifier);
 
 export const ALL_850_TOOLS_MAP = new Map<number, DynamicTool>(
   ALL_850_TOOLS.map((t) => [t.id, t])
