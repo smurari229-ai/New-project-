@@ -1,4 +1,4 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../_lib/gemini.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
