@@ -1,4 +1,4 @@
-// General Utilities for 150 Coding Super Hub Tools
+// General Utilities for Coding Super Hub's 1,000-tool registry
 
 export function safeBase64Encode(str: string): string {
   const bytes = new TextEncoder().encode(str);
@@ -277,7 +277,6 @@ export function safeStorageRemove(key: string): void {
   } catch {
     // Gracefully handle iframe or restricted cookie exceptions
   }
-}
 
 export async function safeCopyToClipboard(text: string): Promise<boolean> {
   if (!text) return false;
