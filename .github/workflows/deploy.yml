@@ -32,5 +32,8 @@ jobs:
       - name: 956-1000 repair smoke check
         run: node scripts/repair-smoke-tests.mjs
 
+      - name: 1-1000 runtime smoke check
+        run: npx tsx scripts/runtime-tool-smoke.ts
+
       - name: Build project
         run: npm run build
