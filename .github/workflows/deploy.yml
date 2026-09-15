@@ -2,7 +2,7 @@ name: Build Check
 
 on:
   push:
-    branches: ["main", "repair-tools-956-1000-2026-09-14"]
+    branches: ["main", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
   workflow_dispatch:
 
 permissions:
@@ -15,25 +15,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
 
       - name: TypeScript check
-        run: npm run lint
+        run: bun run lint
 
       - name: Tool source integrity
-        run: node scripts/verify-tools.mjs
+        run: bun run scripts/verify-tools.mjs
 
       - name: 956-1000 repair smoke check
-        run: node scripts/repair-smoke-tests.mjs
+        run: bun run scripts/repair-smoke-tests.mjs
 
       - name: 1-1000 runtime smoke check
-        run: npx tsx scripts/runtime-tool-smoke.ts
+        run: bunx tsx scripts/runtime-tool-smoke.ts
 
       - name: Build project
-        run: npm run build
+        run: bun run build
