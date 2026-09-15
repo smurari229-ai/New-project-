@@ -75,7 +75,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       setMessages([
         {
           role: "bot",
-          text: `👋 Hello! I am **Coding Super AI**, your developer copilot for **Coding Super Hub**.\n\nI can:\n- 🛠 **Debug and fix code** from your live editor\n- 📖 **Explain complex algorithms** and modern syntax\n- ⚡ **Generate production-ready code** in 48 programming languages\n- 🔄 **Refactor and optimize performance**\n\nTry clicking **Explain Code**, **Fix Current Code**, or type any coding question below!`,
+          text: `👋 Hello! I am **Coding Super AI**, your developer copilot for **Coding Super Hub**.\n\nI can:\n- 🛠 **Debug and fix code** from your live editor\n- 📖 **Explain complex algorithms** and modern syntax\n- ⚡ **Generate production-ready code** for the programming languages available in the Language Hub\n- 🔄 **Refactor and optimize performance**\n\nTry clicking **Explain Code**, **Fix Current Code**, or type any coding question below!`,
           timestamp: Date.now(),
         },
       ]);
