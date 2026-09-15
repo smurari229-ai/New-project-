@@ -139,7 +139,7 @@ async function generateWithFallback(
 async function startServer() {
   const app = express();
   app.disable("x-powered-by");
-  app.set("trust proxy", true);
+  app.set("trust proxy", 1);
   app.use(express.json({ limit: MAX_JSON_BODY }));
 
   // Match the hardened Vercel response policy on the alternate Express path.
