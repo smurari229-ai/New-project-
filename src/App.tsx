@@ -73,7 +73,7 @@ export default function App() {
 
   // Cross-component communication state
   const [activeCode, setActiveCode] = useState("");
-  const [activeLanguage, setActiveLanguage] = useState("HTML/CSS/JS");
+  const [activeLanguage, setActiveLanguage] = useState("HTML");
   const [incomingAiQuery, setIncomingAiQuery] = useState("");
   const activeCodeGetterRef = useRef<(() => { tab: string; code: string }) | null>(null);
   const applyCodeToEditorRef = useRef<((lang: string, code: string) => void) | null>(null);
@@ -306,7 +306,7 @@ export default function App() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-500 transition flex items-center space-x-1.5"
             >
               <Globe2 className="w-3.5 h-3.5 text-emerald-500" />
-              <span>48 Languages</span>
+              <span>{LANGUAGE_CATALOG.length} Languages</span>
             </button>
           </div>
         </div>
