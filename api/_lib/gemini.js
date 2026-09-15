@@ -6,6 +6,8 @@ export const CANDIDATE_MODELS = [
   "gemini-3.1-flash-lite",
 ];
 
+const MAX_CUSTOM_API_KEY_LENGTH = 256;
+
 // Lightweight per-instance guard for public AI endpoints. Vercel Firewall can
 // provide stronger global protection, but this also protects the downstream
 // Gemini key when a request reaches a function instance.
@@ -109,10 +111,12 @@ export async function generateWithFallback(ai, params) {
 }
 
 export function getApiKey(customApiKey) {
-  return (
-    (typeof customApiKey === "string" && customApiKey.trim()) ||
-    process.env.GEMINI_API_KEY
-  );
+  if (typeof customApiKey === "string" && customApiKey.trim()) {
+    const key = customApiKey.trim();
+    if (key.length > MAX_CUSTOM_API_KEY_LENGTH) return null;
+    return key;
+  }
+  return process.env.GEMINI_API_KEY;
 }
 
 export function createGemini(apiKey) {
