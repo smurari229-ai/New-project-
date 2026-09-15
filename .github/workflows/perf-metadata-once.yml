@@ -38,8 +38,9 @@ jobs:
           }
 
           const dynamic = loadExportFromTs('src/data/generatedToolMetadata.ts', 'DYNAMIC_TOOL_METADATA');
+          const first = loadExportFromTs('src/data/toolsMetadata.ts', 'TOOL_1_METADATA', { DYNAMIC_METADATA_LIST: '[]' });
           const staticMetadata = loadExportFromTs('src/data/toolsMetadata.ts', 'STATIC_TOOLS_METADATA', { DYNAMIC_METADATA_LIST: '[]' });
-          const all = [...staticMetadata, ...dynamic];
+          const all = [first, ...staticMetadata, ...dynamic];
           const index = all.map(({id, title, category}) => ({id, title, category}));
           const seen = new Set();
           for (const item of index) {
