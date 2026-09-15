@@ -35,17 +35,18 @@ Your goal:
         if (item && item.text) {
           contents.push({
             role: item.role === "bot" || item.role === "model" ? "model" : "user",
-            parts: [{ text: String(item.text) }],
+            parts: [{ text: String(item.text).slice(0, 12000) }],
           });
         }
       }
     }
-    contents.push({ role: "user", parts: [{ text: prompt.trim() }] });
+    contents.push({ role: "user", parts: [{ text: prompt.trim().slice(0, 20000) }] });
 
+    // Gemini 3.8 Flash no longer accepts legacy sampling parameters such as temperature.
     const { response, modelUsed } = await generateWithFallback(ai, {
       preferredModel: "gemini-3.8-flash",
       contents,
-      config: { systemInstruction, temperature: 0.7 },
+      config: { systemInstruction },
     });
 
     return res.status(200).json({
