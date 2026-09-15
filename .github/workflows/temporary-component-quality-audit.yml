@@ -25,7 +25,6 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          import path from 'node:path';
           import { execFileSync } from 'node:child_process';
 
           const metadata = JSON.parse(execFileSync('npx', ['tsx', '-e', 'import { ALL_TOOLS_METADATA } from "./src/data/toolsMetadata"; console.log(JSON.stringify(ALL_TOOLS_METADATA.slice(0,150)))'], {encoding:'utf8'}));
@@ -39,7 +38,7 @@ jobs:
           const found = new Map();
           for (const file of files) {
             const s = fs.readFileSync(file, 'utf8');
-            const re = /<ToolCard\\s+id={(\\d+)}[\\s\\S]{0,1800}?title="([^"]+)"[\\s\\S]{0,600}?category="([^"]+)"/g;
+            const re = /<ToolCard\b[^>]*?id=\{(\d+)\}[\s\S]*?title="([^"]+)"[\s\S]*?category="([^"]+)"/g;
             let m;
             while ((m = re.exec(s))) {
               const id = Number(m[1]);
