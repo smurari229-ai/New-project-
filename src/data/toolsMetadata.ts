@@ -29,7 +29,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 4,
-    "title": "JSON Formatter",
+    "title": "JSON Formatter & Minifier",
     "category": "Formatting",
     "keywords": [
       "pretty",
@@ -70,7 +70,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 8,
-    "title": "Color Converter",
+    "title": "Color Converter (HEX to RGB & HSL)",
     "category": "Color",
     "keywords": [
       "hex",
@@ -80,7 +80,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 9,
-    "title": "Timestamp Converter",
+    "title": "Unix Timestamp Converter",
     "category": "Time",
     "keywords": [
       "unix",
@@ -100,7 +100,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 11,
-    "title": "UUID Generator",
+    "title": "UUID v4 Generator",
     "category": "Generators",
     "keywords": [
       "uuid",
@@ -180,7 +180,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 19,
-    "title": "HTML/CSS/JS Minifier",
+    "title": "HTML / CSS / JS Minifier",
     "category": "Formatting",
     "keywords": [
       "minify",
@@ -219,7 +219,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 23,
-    "title": "IP Address Info",
+    "title": "IP & Client Network Information",
     "category": "Utilities",
     "keywords": [
       "ip",
@@ -300,7 +300,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 31,
-    "title": "EMI Calculator",
+    "title": "EMI Loan Calculator",
     "category": "Math",
     "keywords": [
       "loan",
@@ -328,7 +328,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 34,
-    "title": "Average Calculator",
+    "title": "Average (Mean) Calculator",
     "category": "Math",
     "keywords": [
       "mean",
@@ -359,7 +359,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 37,
-    "title": "Time Converter",
+    "title": "Minutes to Hours Converter",
     "category": "Time",
     "keywords": [
       "minutes",
@@ -368,7 +368,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 38,
-    "title": "Seconds Converter",
+    "title": "Seconds to Hours, Min & Sec",
     "category": "Time",
     "keywords": [
       "seconds",
@@ -377,7 +377,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 39,
-    "title": "Days Calculator",
+    "title": "Days Between Dates Calculator",
     "category": "Time",
     "keywords": [
       "days difference",
@@ -415,7 +415,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 43,
-    "title": "Factorial Calculator",
+    "title": "Factorial Calculator (n!)",
     "category": "Math",
     "keywords": [
       "factorial",
@@ -424,7 +424,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 44,
-    "title": "Fibonacci Generator",
+    "title": "Fibonacci Sequence Generator",
     "category": "Math",
     "keywords": [
       "fibonacci",
@@ -451,7 +451,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 47,
-    "title": "Binary Calculator",
+    "title": "Binary to Decimal Calculator",
     "category": "Math",
     "keywords": [
       "binary to decimal"
@@ -459,7 +459,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 48,
-    "title": "Hexadecimal Calculator",
+    "title": "Hexadecimal to Decimal Calculator",
     "category": "Math",
     "keywords": [
       "hex to decimal"
@@ -467,7 +467,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 49,
-    "title": "Random Password Generator",
+    "title": "Advanced Password Generator",
     "category": "Security",
     "keywords": [
       "password",
@@ -495,7 +495,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 52,
-    "title": "JSON to CSV",
+    "title": "JSON to CSV Converter",
     "category": "Converters",
     "keywords": [
       "csv",
@@ -505,7 +505,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 53,
-    "title": "CSV to JSON",
+    "title": "CSV to JSON Converter",
     "category": "Converters",
     "keywords": [
       "csv to json",
@@ -514,7 +514,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 54,
-    "title": "JSON Sorter",
+    "title": "JSON Key Sorter",
     "category": "Formatting",
     "keywords": [
       "sort keys",
@@ -533,7 +533,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 56,
-    "title": "Text Sorter",
+    "title": "Text Line Sorter",
     "category": "Text",
     "keywords": [
       "sort lines",
@@ -551,7 +551,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 58,
-    "title": "Line Counter",
+    "title": "Line & Non-Empty Line Counter",
     "category": "Text",
     "keywords": [
       "lines",
@@ -604,7 +604,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 64,
-    "title": "Text Deduplicator",
+    "title": "Word Deduplicator",
     "category": "Text",
     "keywords": [
       "dedup words"
@@ -647,7 +647,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 69,
-    "title": "URL Parser",
+    "title": "URL Component Parser",
     "category": "Web",
     "keywords": [
       "url breakdown",
@@ -657,7 +657,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 70,
-    "title": "Query String Parser",
+    "title": "URL Query String Parser",
     "category": "Web",
     "keywords": [
       "querystring",
@@ -666,7 +666,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 71,
-    "title": "Browser Information",
+    "title": "Browser & Platform Information",
     "category": "Utilities",
     "keywords": [
       "browser",
@@ -676,7 +676,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 72,
-    "title": "Screen & Viewport Info",
+    "title": "Screen & Viewport Resolution",
     "category": "Utilities",
     "keywords": [
       "resolution",
@@ -685,7 +685,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 73,
-    "title": "Meta Tag Generator",
+    "title": "HTML Meta Tag Generator",
     "category": "Web",
     "keywords": [
       "seo",
@@ -695,7 +695,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 74,
-    "title": "HTML Boilerplate Generator",
+    "title": "HTML5 Boilerplate Template",
     "category": "HTML",
     "keywords": [
       "template",
@@ -704,7 +704,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 75,
-    "title": "CSS Reset Generator",
+    "title": "Modern CSS Reset Snippet",
     "category": "CSS",
     "keywords": [
       "reset",
@@ -733,7 +733,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 78,
-    "title": "Box Shadow Generator",
+    "title": "CSS Box Shadow Generator",
     "category": "CSS",
     "keywords": [
       "shadow",
@@ -742,7 +742,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 79,
-    "title": "Border Radius Generator",
+    "title": "CSS Border Radius Generator",
     "category": "CSS",
     "keywords": [
       "rounded",
@@ -751,7 +751,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 80,
-    "title": "CSS Clamp Generator",
+    "title": "CSS clamp() Fluid Value Generator",
     "category": "CSS",
     "keywords": [
       "clamp",
@@ -760,7 +760,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 81,
-    "title": "PX <-> REM Converter",
+    "title": "PX to REM Converter",
     "category": "Converters",
     "keywords": [
       "px to rem",
@@ -788,7 +788,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 84,
-    "title": "Color Contrast Checker",
+    "title": "WCAG Color Contrast Checker",
     "category": "Color",
     "keywords": [
       "contrast ratio",
@@ -806,7 +806,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 86,
-    "title": "Favicon HTML Generator",
+    "title": "Favicon HTML Tag Generator",
     "category": "HTML",
     "keywords": [
       "favicon",
@@ -824,7 +824,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 88,
-    "title": "Sitemap XML Generator",
+    "title": "Sitemap.xml Generator",
     "category": "Web",
     "keywords": [
       "sitemap",
@@ -833,7 +833,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 89,
-    "title": "Gitignore Generator",
+    "title": ".gitignore Generator",
     "category": "DevOps",
     "keywords": [
       "gitignore",
@@ -842,7 +842,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 90,
-    "title": "README Generator",
+    "title": "README.md Starter Generator",
     "category": "DevOps",
     "keywords": [
       "readme",
@@ -851,7 +851,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 91,
-    "title": "JS Function Generator",
+    "title": "JavaScript Function Snippet Generator",
     "category": "JavaScript",
     "keywords": [
       "function template",
@@ -860,7 +860,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 92,
-    "title": "Fetch API Snippet",
+    "title": "Fetch API Snippet Generator",
     "category": "JavaScript",
     "keywords": [
       "fetch",
@@ -870,7 +870,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 93,
-    "title": "SQL Formatter",
+    "title": "SQL Query Formatter",
     "category": "Formatting",
     "keywords": [
       "sql",
@@ -898,7 +898,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 96,
-    "title": "Unix Timestamp Now",
+    "title": "Current Unix Timestamp (Epoch)",
     "category": "Time",
     "keywords": [
       "current epoch",
@@ -916,7 +916,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 98,
-    "title": "UUID Bulk Generator",
+    "title": "Bulk UUID Generator",
     "category": "Generators",
     "keywords": [
       "multiple uuids",
@@ -936,7 +936,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 100,
-    "title": "Developer Cheat Sheet",
+    "title": "Developer Cheat Sheet Reference",
     "category": "Utilities",
     "keywords": [
       "cheat sheet",
@@ -957,7 +957,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 102,
-    "title": "Text Joiner",
+    "title": "Text Line Joiner",
     "category": "Text",
     "keywords": [
       "join",
@@ -967,7 +967,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 103,
-    "title": "Line Break Converter",
+    "title": "Line Break Converter (CRLF <-> LF)",
     "category": "Formatting",
     "keywords": [
       "crlf",
@@ -978,7 +978,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 104,
-    "title": "Tabs <-> Spaces Converter",
+    "title": "Tabs to Spaces Converter",
     "category": "Formatting",
     "keywords": [
       "tabs",
@@ -988,7 +988,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 105,
-    "title": "Indent Formatter",
+    "title": "Text Indent Formatter",
     "category": "Formatting",
     "keywords": [
       "indent",
@@ -997,7 +997,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 106,
-    "title": "Text Extractor",
+    "title": "Email & URL Extractor",
     "category": "Text",
     "keywords": [
       "emails",
@@ -1007,7 +1007,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 107,
-    "title": "Text Trimmer",
+    "title": "Text Line Trimmer",
     "category": "Text",
     "keywords": [
       "trim",
@@ -1016,7 +1016,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 108,
-    "title": "Number List Generator",
+    "title": "Sequential Number List Generator",
     "category": "Generators",
     "keywords": [
       "sequence",
@@ -1026,7 +1026,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 109,
-    "title": "Text Padding Generator",
+    "title": "Text Padding (PadStart / PadEnd)",
     "category": "Text",
     "keywords": [
       "padstart",
@@ -1036,7 +1036,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 110,
-    "title": "Text Wrap Converter",
+    "title": "Text Word-Wrap at N Columns",
     "category": "Text",
     "keywords": [
       "word wrap",
@@ -1088,7 +1088,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 116,
-    "title": "Hex Encoder / Decoder",
+    "title": "Hexadecimal Text Encoder / Decoder",
     "category": "Converters",
     "keywords": [
       "hex to text",
@@ -1097,7 +1097,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 117,
-    "title": "ROT13 Encoder / Decoder",
+    "title": "ROT13 Cipher",
     "category": "Security",
     "keywords": [
       "rot13",
@@ -1106,7 +1106,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 118,
-    "title": "ROT47 Encoder / Decoder",
+    "title": "ROT47 Cipher",
     "category": "Security",
     "keywords": [
       "rot47",
@@ -1115,7 +1115,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 119,
-    "title": "Caesar Cipher",
+    "title": "Caesar Cipher with Custom Shift",
     "category": "Security",
     "keywords": [
       "caesar",
@@ -1124,7 +1124,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 120,
-    "title": "AES-GCM Key Generator",
+    "title": "AES-GCM 256-Bit Cryptographic Key Generator",
     "category": "Security",
     "keywords": [
       "aes",
@@ -1134,7 +1134,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 121,
-    "title": "HTTP Header Generator",
+    "title": "Security HTTP Headers Generator",
     "category": "Security",
     "keywords": [
       "cors",
@@ -1144,7 +1144,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 122,
-    "title": "cURL Request Builder",
+    "title": "cURL Command Generator",
     "category": "API",
     "keywords": [
       "curl",
@@ -1153,7 +1153,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 123,
-    "title": "HTTP Response Header Viewer",
+    "title": "HTTP Response Header Inspector",
     "category": "API",
     "keywords": [
       "headers",
@@ -1181,7 +1181,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 126,
-    "title": "URL Shortener Generator",
+    "title": "URL Shortener Hash Slug Generator",
     "category": "Web",
     "keywords": [
       "shortener",
@@ -1191,7 +1191,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 127,
-    "title": "Open Graph Meta Generator",
+    "title": "Open Graph Social Preview Meta Tags",
     "category": "Web",
     "keywords": [
       "og:image",
@@ -1201,7 +1201,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 128,
-    "title": "Twitter Card Generator",
+    "title": "Twitter / X Card Meta Tags",
     "category": "Web",
     "keywords": [
       "twitter:card",
@@ -1210,7 +1210,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 129,
-    "title": "Canonical URL Generator",
+    "title": "Canonical Link Element Generator",
     "category": "Web",
     "keywords": [
       "canonical",
@@ -1219,7 +1219,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 130,
-    "title": "Web Manifest Generator",
+    "title": "Web App Manifest.json Generator",
     "category": "Web",
     "keywords": [
       "manifest.json",
@@ -1228,7 +1228,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 131,
-    "title": "CSS Button Generator",
+    "title": "CSS Button Style Generator",
     "category": "CSS",
     "keywords": [
       "button styles",
@@ -1246,7 +1246,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 133,
-    "title": "CSS Animation Generator",
+    "title": "CSS @keyframes Animation Generator",
     "category": "CSS",
     "keywords": [
       "@keyframes",
@@ -1255,7 +1255,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 134,
-    "title": "CSS Transform Generator",
+    "title": "CSS Transform Generator (Rotate & Scale)",
     "category": "CSS",
     "keywords": [
       "rotate",
@@ -1293,7 +1293,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 138,
-    "title": "CSS Neumorphism Generator",
+    "title": "CSS Neumorphism Soft UI Generator",
     "category": "CSS",
     "keywords": [
       "neumorphism",
@@ -1302,7 +1302,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 139,
-    "title": "CSS Triangle Generator",
+    "title": "CSS Pure Border Triangle Generator",
     "category": "CSS",
     "keywords": [
       "triangle",
@@ -1311,7 +1311,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 140,
-    "title": "CSS Spinner Generator",
+    "title": "CSS Circular Loading Spinner",
     "category": "CSS",
     "keywords": [
       "spinner",
@@ -1320,7 +1320,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 141,
-    "title": "JS Deep Clone Helper",
+    "title": "JavaScript Deep Clone & Formatter",
     "category": "JavaScript",
     "keywords": [
       "clone",
@@ -1330,7 +1330,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 142,
-    "title": "JS Array Generator",
+    "title": "JavaScript Array.from Generator",
     "category": "JavaScript",
     "keywords": [
       "array.from",
@@ -1339,7 +1339,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 143,
-    "title": "Array Methods Cheat Sheet",
+    "title": "JS Array Methods Quick Reference",
     "category": "JavaScript",
     "keywords": [
       "map",
@@ -1350,7 +1350,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 144,
-    "title": "Date Helper Snippets",
+    "title": "JavaScript Date Calculation Snippets",
     "category": "JavaScript",
     "keywords": [
       "date difference",
@@ -1359,7 +1359,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 145,
-    "title": "Debounce Function Snippet",
+    "title": "JavaScript Debounce Function Snippet",
     "category": "JavaScript",
     "keywords": [
       "debounce",
@@ -1369,7 +1369,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 146,
-    "title": "Throttle Function Snippet",
+    "title": "JavaScript Throttle Function Snippet",
     "category": "JavaScript",
     "keywords": [
       "throttle",
@@ -1378,7 +1378,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 147,
-    "title": "Event Listener Snippet",
+    "title": "DOM Event Listener Generator",
     "category": "JavaScript",
     "keywords": [
       "addeventlistener",
@@ -1387,7 +1387,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 148,
-    "title": "DOM Selector Generator",
+    "title": "DOM Query Selector Generator",
     "category": "JavaScript",
     "keywords": [
       "queryselector",
@@ -1396,7 +1396,7 @@ export const STATIC_TOOLS_METADATA = [
   },
   {
     "id": 149,
-    "title": "LocalStorage Code Helper",
+    "title": "LocalStorage Type-Safe Storage Helper",
     "category": "JavaScript",
     "keywords": [
       "localstorage",
