@@ -1,6 +1,6 @@
 # Coding Super Hub 🚀
 
-An all-in-one developer workspace featuring **1,000 interactive developer tools**, a **multi-language code runner supporting 48 programming languages**, an **intelligent AI coding copilot powered by Gemini**, and full source export utilities (including a complete 191-page PDF documentation).
+An all-in-one developer workspace featuring **1,000 interactive developer tools**, a **multi-language code runner**, an **intelligent AI coding copilot powered by Gemini**, and source export utilities with architecture and source-code documentation.
 
 ---
 
@@ -15,14 +15,14 @@ An all-in-one developer workspace featuring **1,000 interactive developer tools*
   - **Comprehensive Developer Suite (Tools 151–1000):** 850 dynamic specialized developer utilities covering modern text processing, encoding, networking, cloud, DevOps, mathematical algorithms, and systems engineering.
 - **⚡ Live Code Editor & Multi-Language Runner:**
   - In-browser interactive sandbox for HTML, CSS, and JavaScript with console output.
-  - Server/API-backed **virtual AI-assisted execution** for 48 languages (Python, C++, Rust, Go, Java, TypeScript, Bash, PHP, Ruby, Kotlin, Swift, SQL, etc.). This is not a native compiler farm; execution results are AI-assisted and should be validated before production use.
+  - Server/API-backed **virtual AI-assisted execution** for the languages in the catalog. This is not a native compiler farm; execution results are AI-assisted and should be validated before production use.
   - File drag-and-drop & local file import support.
   - Bidirectional wiring with the AI Assistant ("Apply Code to Editor").
 - **🤖 Coding Super AI (Copilot):**
   - Context-aware coding assistant powered by `@google/genai` (with dynamic fallback pool across `gemini-3.8-flash`, `gemini-flash-latest`, and `gemini-3.1-flash-lite`).
   - Markdown rendering with syntax highlighting, one-click code copy, and direct editor insertion.
-- **📄 Complete Codebase PDF Export:**
-  - Built-in PDFKit generator creating a comprehensive vector PDF with line numbers, code gutter, and architecture overview.
+- **📄 Codebase PDF Export:**
+  - Built-in PDFKit generator creating a vector PDF with line numbers, code gutter, and architecture overview.
   - Downloadable via top navigation bar (`Code PDF`) or `/api/download/codebase-pdf`.
 - **🎨 Modern UI & UX:**
   - Clean light and dark mode toggles.
@@ -76,7 +76,7 @@ npm run build
 npm start
 ```
 
-### 6. Generate Complete Codebase PDF
+### 6. Generate Codebase PDF
 ```bash
 npm run generate:pdf
 ```
@@ -137,7 +137,7 @@ To run both the **Frontend and the Node.js / Gemini AI backend**:
 │   │   ├── tools/          # 1,000 developer tool modules
 │   │   ├── AIAssistant.tsx # Copilot chat with Markdown & Editor sync
 │   │   ├── CodeEditor.tsx  # Code editor and multi-language runner
-│   │   ├── LanguageHub.tsx # 48 languages starter library
+│   │   ├── LanguageHub.tsx # Language catalog and starter library
 │   │   ├── Navbar.tsx      # Search, category filter & navigation
 │   │   └── ToolCard.tsx    # Reusable tool container
 │   ├── data/               # Languages catalogue & tools metadata
