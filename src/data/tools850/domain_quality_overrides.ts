@@ -1,0 +1,51 @@
+import { DynamicTool } from "./definitions";
+
+function utf8Bytes(input: string): number[] {
+  return Array.from(new TextEncoder().encode(input));
+}
+function rotr(x: number, n: number) { return (x >>> n) | (x << (32 - n)); }
+const K256 = [
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dcf,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb3,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2,
+];
+function sha256Bytes(input: number[]): number[] {
+  const a = input.slice(); const bitLen = a.length * 8;
+  a.push(0x80); while (a.length % 64 !== 56) a.push(0);
+  const hi = Math.floor(bitLen / 0x100000000), lo = bitLen >>> 0;
+  for (const n of [hi, lo]) a.push((n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255);
+  let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+  for(let off=0;off<a.length;off+=64){
+    const w=new Array<number>(64).fill(0);
+    for(let i=0;i<16;i++) w[i]=((a[off+i*4]<<24)|(a[off+i*4+1]<<16)|(a[off+i*4+2]<<8)|a[off+i*4+3])>>>0;
+    for(let i=16;i<64;i++){const x=w[i-15],y=w[i-2];const s0=rotr(x,7)^rotr(x,18)^(x>>>3);const s1=rotr(y,17)^rotr(y,19)^(y>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;}
+    let A=h0,B=h1,C=h2,D=h3,E=h4,F=h5,G=h6,H=h7;
+    for(let i=0;i<64;i++){const S1=rotr(E,6)^rotr(E,11)^rotr(E,25);const ch=(E&F)^(~E&G);const t1=(H+S1+ch+K256[i]+w[i])>>>0;const S0=rotr(A,2)^rotr(A,13)^rotr(A,22);const maj=(A&B)^(A&C)^(B&C);const t2=(S0+maj)>>>0;H=G;G=F;F=E;E=(D+t1)>>>0;D=C;C=B;B=A;A=(t1+t2)>>>0;}
+    h0=(h0+A)>>>0;h1=(h1+B)>>>0;h2=(h2+C)>>>0;h3=(h3+D)>>>0;h4=(h4+E)>>>0;h5=(h5+F)>>>0;h6=(h6+G)>>>0;h7=(h7+H)>>>0;
+  }
+  return [h0,h1,h2,h3,h4,h5,h6,h7].flatMap(n=>[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]);
+}
+function hex(bytes:number[]){return bytes.map(b=>b.toString(16).padStart(2,"0")).join("");}
+function b64url(bytes:number[]){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
+function hmacSha256(key:number[], data:number[]):number[]{
+  if(key.length>64) key=sha256Bytes(key); key=key.slice(); while(key.length<64) key.push(0);
+  const o=key.map(x=>x^0x5c), i=key.map(x=>x^0x36); return sha256Bytes(o.concat(sha256Bytes(i.concat(data))));
+}
+
+export function applyDomainQualityOverrides(tools: DynamicTool[]): DynamicTool[] {
+  return tools.map((tool) => {
+    if (tool.id === 474) return {...tool, description:"Computes the standard cryptographic SHA-256 digest in hexadecimal using a local implementation.", run:(v)=>`SHA-256:\n${hex(sha256Bytes(utf8Bytes(v)))}`};
+    if (tool.id === 481) return {...tool, title:"TOTP Code Simulator (Non-cryptographic)", description:"Shows the TOTP time window and a clearly labeled demo code; not a standards-compliant cryptographic TOTP implementation.", run:(v)=>{const step=Math.floor(Date.now()/30000);let h=0;for(const c of `${v}:${step}`)h=(Math.imul(h,31)+c.charCodeAt(0))>>>0;return `Demo secret: ${v}\nDemo code: ${(h%1000000).toString().padStart(6,"0")}\nValid for next: ${30-(Math.floor(Date.now()/1000)%30)} seconds\n\nNOTE: Demo only — use a real RFC 6238 library for authentication.`;}};
+    if (tool.id === 483) return {...tool, title:"UUID v5 Namespace Name Template", description:"Explains the UUID v5 inputs without pretending to calculate SHA-1 in the browser tool runner.", run:(ns,name="")=>`UUID v5 inputs:\nNamespace: ${ns.trim() || "dns"}\nName: ${name}\n\nUUID v5 requires SHA-1(namespace_bytes + UTF-8(name)) with version 5 and RFC 4122 variant bits. Use a standards-compliant UUID library to compute the final UUID.`};
+    if (tool.id === 518) return {...tool, description:"Generates a random PKCE verifier and computes its S256 challenge with SHA-256.", run:()=>{const arr=new Uint8Array(32);crypto.getRandomValues(arr);const verifier=b64url(Array.from(arr));const challenge=b64url(sha256Bytes(utf8Bytes(verifier)));return `code_verifier:\n${verifier}\n\ncode_challenge:\n${challenge}\n\ncode_challenge_method: S256`;}};
+    if (tool.id === 497) return {...tool, title:"Webhook HMAC-SHA256 Signature Generator", description:"Computes an HMAC-SHA256 hex signature for a raw webhook body and secret.", run:(body,secret="")=>{const sig=hex(hmacSha256(utf8Bytes(secret),utf8Bytes(body)));return `HMAC-SHA256:\n${sig}\n\nVerification: Recompute this value on the receiver using the same secret.`;}};
+    if (tool.id === 517) return {...tool, title:"JWK Structure Template", description:"Generates a clearly labeled RSA JWK structure template; it does not generate real RSA key material.", run:(kid)=>JSON.stringify({kty:"RSA",use:"sig",alg:"RS256",kid:kid.trim()||"key-1",n:"<base64url RSA modulus>",e:"AQAB"},null,2)};
+    if (tool.id === 487) return {...tool, title:"SRI HTML Template Generator", description:"Generates an SRI script-tag template and clearly marks the digest as a placeholder requiring a real SHA-384 calculation.", run:()=>`<script\n  src="https://cdn.example.com/lib.js"\n  integrity="sha384-<calculate-real-sha384-of-the-exact-resource>"\n  crossorigin="anonymous"\n></script>`};
+    return tool;
+  });
+}
