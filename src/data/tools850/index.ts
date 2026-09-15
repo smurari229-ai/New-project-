@@ -9,6 +9,7 @@ import { BATCH_6_DATA_AI_TOOLS } from "./batch6_data_ai";
 import { BATCH_7_DESIGN_AUDIO_TOOLS } from "./batch7_design_audio";
 import { BATCH_8_SYSTEM_DEVOPS_TOOLS } from "./batch8_system_devops";
 import { BATCH_9_FIXED_TOOLS } from "./batch9_fixed";
+import { BATCH_9_REPAIRED_956_1000 } from "./batch9_repaired_956_1000";
 import { repairDynamicTool } from "./placeholder_repairs";
 
 const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
@@ -21,6 +22,7 @@ const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
   ...BATCH_7_DESIGN_AUDIO_TOOLS,
   ...BATCH_8_SYSTEM_DEVOPS_TOOLS,
   ...BATCH_9_FIXED_TOOLS,
+  ...BATCH_9_REPAIRED_956_1000,
 ];
 
 const REPAIRED_DYNAMIC_TOOLS = RAW_DYNAMIC_TOOLS.map(repairDynamicTool);
@@ -35,7 +37,9 @@ const withRealRegistryVerifier = (tool: DynamicTool): DynamicTool => {
       const unique = new Set(ids);
       const missing: number[] = [];
       for (let id = 151; id <= 1000; id += 1) if (!unique.has(id)) missing.push(id);
-      const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index).filter((id, index, arr) => arr.indexOf(id) === index);
+      const duplicates = ids
+        .filter((id, index) => ids.indexOf(id) !== index)
+        .filter((id, index, arr) => arr.indexOf(id) === index);
       const expectedDynamicCount = 850;
       const countOk = ids.length === expectedDynamicCount;
       const rangeOk = ids.every((id) => id >= 151 && id <= 1000);
