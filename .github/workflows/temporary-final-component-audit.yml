@@ -1,0 +1,49 @@
+name: Temporary final component audit
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.actor == 'smurari229-ai'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify first 150 component metadata alignment
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const metadata = JSON.parse(execFileSync('npx', ['tsx', '-e', 'import { ALL_TOOLS_METADATA } from "./src/data/toolsMetadata"; console.log(JSON.stringify(ALL_TOOLS_METADATA.slice(0,150)))'], {encoding:'utf8'}));
+          const byId = new Map(metadata.map(t => [t.id, t]));
+          const files = ['src/components/tools/ToolsTextFormat.tsx','src/components/tools/ToolsMathCalculators.tsx','src/components/tools/ToolsDataWeb.tsx','src/components/tools/ToolsAdvancedDev.tsx'];
+          const found = new Map();
+          for (const file of files) {
+            const s = fs.readFileSync(file, 'utf8');
+            const re = /<ToolCard\b[^>]*?id=\{(\d+)\}[\s\S]*?title="([^"]+)"[\s\S]*?category="([^"]+)"/g;
+            let m;
+            while ((m = re.exec(s))) { const id = Number(m[1]); if (id >= 2 && id <= 150) found.set(id, {title:m[2], category:m[3]}); }
+          }
+          const missing = [], mismatches = [];
+          for (let id = 2; id <= 150; id++) {
+            const ui = found.get(id), meta = byId.get(id);
+            if (!ui) missing.push(id);
+            else if (!meta || ui.title.trim() !== meta.title.trim() || ui.category !== meta.category) mismatches.push({id, ui, metadata: meta ? {title:meta.title,category:meta.category} : null});
+          }
+          console.log(`UI ToolCard IDs: ${found.size}/149`);
+          console.log(`Missing IDs: ${missing.length ? missing.join(',') : 'none'}`);
+          console.log(`Title/category mismatches: ${mismatches.length}`);
+          if (missing.length || mismatches.length || metadata.length !== 149) process.exit(2);
+          NODE
