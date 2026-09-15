@@ -14,5 +14,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test@1.63.0
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config=playwright.static-audit.config.ts
