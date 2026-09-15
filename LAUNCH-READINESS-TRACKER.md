@@ -4,6 +4,7 @@ Last verified: 2026-09-15
 
 ## Current checkpoint
 - Production deployment: READY
+- Public production access: PASS
 - GitHub Build Check: PASS
 - TypeScript check: PASS
 - Tool source integrity: PASS
@@ -12,36 +13,45 @@ Last verified: 2026-09-15
 - Recent Vercel runtime errors: 0
 - Production security headers: verified
 - Production HTML response: HTTP 200 verified
+- Final browser acceptance: PASS
+  - Desktop page open: PASS
+  - 1,000-tool identity: PASS
+  - Global search: PASS
+  - Category filter: PASS
+  - Tool grid loading: PASS
+  - Code editor + HTML sandbox/live preview: PASS
+  - Theme toggle: PASS
+  - Keyboard shortcuts modal: PASS
+  - Language Hub: PASS
+  - AI assistant + API-key drawer UI: PASS
+  - Health API: PASS
+  - Source PDF endpoint: PASS
+  - Mobile responsive check: PASS
+  - Browser console errors: 0
+  - Browser request failures: 0
+- Performance optimization: PASS
+  - Executable tool registry is lazy-loaded.
+  - Verbose metadata is lazy-loaded for search.
+  - Compact metadata index is used for initial counts/filtering.
+  - Vite still reports a large lazy chunk, but the optimization goal was initial-load isolation.
+- CI lockfile hardening: PASS
+  - Committed package-lock.json is present.
+  - CI uses npm ci.
+  - Latest production build installs successfully with the lockfile path.
 
-## Remaining launch work
+## Remaining product-quality work
 
-### 1. Public production access — 🔴 REQUIRED
-- Remove/adjust Vercel Deployment Protection for the production domain so normal visitors can open the app without Vercel authentication.
-- Verify the public production URL in an unauthenticated browser.
+### 1. Domain-specific tool correctness — 🟡 FUTURE QUALITY WORK
+- Continue reviewing generated/dynamic tools for domain-specific correctness beyond execution smoke tests.
+- Validate tool UX and edge cases where deeper semantics matter.
 
-### 2. Final browser acceptance test — 🟡 REQUIRED
-- Open the public production URL on mobile and desktop.
-- Verify navigation, search, category filters, tool opening, tool execution, copy actions, editor, AI, language hub, PDF/source export, theme toggle and responsive layout.
-- Verify browser console/network errors.
-
-### 3. Performance — 🟡 RECOMMENDED BEFORE PUBLIC LAUNCH
-- Current main JS bundle is about 866.83 KB minified (about 258 KB gzip).
-- Investigate safe code-splitting/lazy loading without changing existing tool behavior.
-- Re-run full 1–1000 runtime smoke and production verification after any change.
-
-### 4. CI reproducibility — 🟡 RECOMMENDED
-- Repository currently has no package-lock.json, so CI uses npm install fallback after npm ci fails.
-- Add a verified lockfile and switch CI to deterministic npm ci when it can be generated safely.
-
-### 5. Product-quality pass — 🟡 FUTURE QUALITY WORK
-- Review generated/dynamic tools for domain-specific correctness beyond execution smoke tests.
+### 2. Real integrations — 🟡 FUTURE QUALITY WORK
 - Replace any simulated integrations with real integrations only when intentionally supported.
-- Continue removing any remaining stale user-facing claims.
 
-## Estimated remaining effort
-Assuming focused work of about 1–1.5 hours/day:
-- Required launch blocker + final browser acceptance: ~1 day.
-- Performance + CI hardening: ~1–2 additional days.
-- Deeper 1,000-tool product-quality refinement: ~5–10+ days depending on desired depth.
+### 3. User-facing claim cleanup — 🟡 FUTURE QUALITY WORK
+- Continue removing any remaining stale or overly broad user-facing claims.
 
-The project should NOT be declared fully launch-ready until the production domain is publicly accessible and the final unauthenticated browser acceptance test passes.
+## Current launch status
+The required launch-verification checklist is complete. Production is READY, publicly reachable, and the final browser acceptance suite passes on the production URL.
+
+Product-quality refinement remains ongoing and is separate from the final launch-verification blocker.
