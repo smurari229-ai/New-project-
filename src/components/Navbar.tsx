@@ -69,29 +69,29 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
         {/* Top brand & actions bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
               <Terminal className="w-6 h-6" />
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-xl font-bold tracking-tight text-white">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center space-x-2 gap-y-1">
+                <h1 className="text-xl font-bold tracking-tight text-white truncate">
                   Coding Super Hub
                 </h1>
-                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
                   {totalTools} Tools
                 </span>
-                <span className="hidden sm:inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="hidden sm:inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                   AI Copilot
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 truncate">
                 All-in-one developer workspace, editor, and language hub
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 w-full sm:w-auto min-w-0">
             <button
               type="button"
               onClick={() => onJumpToSection?.("ai-assistant-section")}
@@ -180,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Category Pills Scroller */}
-        <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs min-w-0">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat;
             const count = cat === "All" ? totalTools : (categoryCounts?.[cat] ?? 0);
