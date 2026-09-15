@@ -9,7 +9,6 @@ import { BATCH_6_DATA_AI_TOOLS } from "./batch6_data_ai";
 import { BATCH_7_DESIGN_AUDIO_TOOLS } from "./batch7_design_audio";
 import { BATCH_8_SYSTEM_DEVOPS_TOOLS } from "./batch8_system_devops";
 import { BATCH_9_FIXED_TOOLS } from "./batch9_fixed";
-import { BATCH_9_REPAIRED_956_1000 } from "./batch9_repaired_956_1000";
 import { repairDynamicTool } from "./placeholder_repairs";
 
 const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
@@ -22,7 +21,6 @@ const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
   ...BATCH_7_DESIGN_AUDIO_TOOLS,
   ...BATCH_8_SYSTEM_DEVOPS_TOOLS,
   ...BATCH_9_FIXED_TOOLS,
-  ...BATCH_9_REPAIRED_956_1000,
 ];
 
 const REPAIRED_DYNAMIC_TOOLS = RAW_DYNAMIC_TOOLS.map(repairDynamicTool);
