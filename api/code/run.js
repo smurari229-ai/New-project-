@@ -46,7 +46,7 @@ ${code.slice(0, 10000)}
       const { response, modelUsed } = await generateWithFallback(ai, {
         preferredModel: "gemini-3.8-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: { temperature: 0.1, responseMimeType: "application/json" },
+        config: { responseMimeType: "application/json" },
       });
 
       const parsed = JSON.parse(response.text || "{}");
