@@ -3,7 +3,6 @@ import { ToolCard } from "../ToolCard";
 import type { DynamicTool } from "../../data/tools850/definitions";
 import { ToolCategory } from "../../types";
 import { Play, RotateCcw, ChevronDown } from "lucide-react";
-import { runQualityTool } from "../../utils/dynamicToolQuality";
 
 interface DynamicToolsRendererProps {
   searchQuery: string;
@@ -138,14 +137,14 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
   const [val1, setVal1] = useState<string>(initialValue1);
   const [val2, setVal2] = useState<string>(tool.default2 ?? "");
   const [output, setOutput] = useState<string>(() => {
-    try { return runQualityTool(tool, initialValue1, tool.default2 ?? ""); }
+    try { return tool.run(initialValue1, tool.default2 ?? ""); }
     catch { return ""; }
   });
   const [isError, setIsError] = useState(false);
 
   const execute = (v1 = val1, v2 = val2) => {
     try {
-      setOutput(runQualityTool(tool, v1, v2));
+      setOutput(tool.run(v1, v2));
       setIsError(false);
     } catch (err: any) {
       setOutput("Execution Error: " + (err?.message || "Invalid input"));
