@@ -1,8 +1,14 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const rate = checkRateLimit(req, "ai-ask", 20, 60_000);
+  if (!rate.allowed) {
+    res.setHeader("Retry-After", String(rate.retryAfter));
+    return res.status(429).json({ error: "Too many AI requests. Please retry shortly." });
   }
 
   try {
@@ -33,14 +39,14 @@ Your goal:
     // Preserve recent conversation context as labeled user-provided context instead.
     const contents = [];
     if (Array.isArray(history) && history.length > 0) {
-      const context = history
-        .slice(-8)
+      const contextParts = history
+        .slice(-6)
         .filter((item) => item && item.text)
         .map((item) => {
           const role = item.role === "bot" || item.role === "model" ? "Assistant" : "User";
-          return `${role}: ${String(item.text).slice(0, 12000)}`;
-        })
-        .join("\n\n");
+          return `${role}: ${String(item.text).slice(0, 4000)}`;
+        });
+      const context = contextParts.join("\n\n").slice(0, 18000);
 
       if (context) {
         contents.push({
