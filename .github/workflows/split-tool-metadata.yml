@@ -54,6 +54,21 @@ jobs:
           p.write_text(s.replace(old, new, 1))
           PY
 
+      - name: TypeScript check
+        run: npm run lint
+
+      - name: Tool source integrity
+        run: node scripts/verify-tools.mjs
+
+      - name: 956-1000 repair smoke check
+        run: node scripts/repair-smoke-tests.mjs
+
+      - name: 1-1000 runtime smoke check
+        run: npx tsx scripts/runtime-tool-smoke.ts
+
+      - name: Build project
+        run: npm run build
+
       - name: Commit generated metadata split
         run: |
           git config user.name "github-actions[bot]"
