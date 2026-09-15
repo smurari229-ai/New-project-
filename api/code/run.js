@@ -56,8 +56,31 @@ ${code.slice(0, 10000)}
       });
 
       const parsed = JSON.parse(response.text || "{}");
-      if (!parsed.notes) parsed.notes = `${language} virtual runtime (${modelUsed})`;
-      return res.status(200).json(parsed);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Virtual runtime returned an invalid response object.");
+      }
+
+      const stdout = typeof parsed.stdout === "string" ? parsed.stdout : "";
+      const stderr = typeof parsed.stderr === "string" ? parsed.stderr : "";
+      const exitCode = Number.isFinite(Number(parsed.exitCode))
+        ? Number(parsed.exitCode)
+        : 1;
+      const executionTime =
+        typeof parsed.executionTime === "string" && parsed.executionTime.trim()
+          ? parsed.executionTime
+          : "0.00s";
+      const notes =
+        typeof parsed.notes === "string" && parsed.notes.trim()
+          ? parsed.notes
+          : `${language} virtual runtime (${modelUsed})`;
+
+      return res.status(200).json({
+        stdout,
+        stderr,
+        exitCode,
+        executionTime,
+        notes,
+      });
     } catch (error) {
       if (isTransientError(error)) {
         return res.status(200).json({
