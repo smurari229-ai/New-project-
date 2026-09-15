@@ -11,6 +11,7 @@ import { BATCH_8_SYSTEM_DEVOPS_TOOLS } from "./batch8_system_devops";
 import { BATCH_9_FIXED_TOOLS } from "./batch9_fixed";
 import { repairDynamicTool } from "./placeholder_repairs";
 import { enhanceGenericDynamicToolV2 } from "./deep_repair_overrides_v2";
+import { applyDomainQualityOverrides } from "./domain_quality_overrides";
 
 const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
   ...BATCH_1_TEXT_TOOLS,
@@ -24,9 +25,9 @@ const RAW_DYNAMIC_TOOLS: DynamicTool[] = [
   ...BATCH_9_FIXED_TOOLS,
 ];
 
-const REPAIRED_DYNAMIC_TOOLS = RAW_DYNAMIC_TOOLS
-  .map(repairDynamicTool)
-  .map(enhanceGenericDynamicToolV2);
+const REPAIRED_DYNAMIC_TOOLS = applyDomainQualityOverrides(
+  RAW_DYNAMIC_TOOLS.map(repairDynamicTool).map(enhanceGenericDynamicToolV2)
+);
 
 const withRealRegistryVerifier = (tool: DynamicTool): DynamicTool => {
   if (tool.id !== 1000) return tool;
