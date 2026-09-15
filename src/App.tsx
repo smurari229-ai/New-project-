@@ -83,14 +83,20 @@ export default function App() {
     return () => { cancelled = true; };
   }, [searchQuery]);
 
-  // Compute matching count from the compact index; hydrate verbose metadata only for search.
+  // Compute matching count from the compact index; use verbose metadata only when searching.
   const matchingToolsCount = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    const source = q ? (fullSearchMetadata ?? []) : TOOL_METADATA_INDEX;
+
+    if (!q) {
+      return TOOL_METADATA_INDEX.filter((t) =>
+        selectedCategory === "All" || selectedCategory === t.category
+      ).length;
+    }
+
+    const source = fullSearchMetadata ?? [];
     return source.filter((t) => {
       const matchesCategory = selectedCategory === "All" || selectedCategory === t.category;
       if (!matchesCategory) return false;
-      if (!q) return true;
       return (
         t.title.toLowerCase().includes(q) ||
         t.category.toLowerCase().includes(q) ||
