@@ -3,8 +3,9 @@
 Last deep-audit verification: 2026-09-15
 
 ## Current checkpoint
-- GitHub `main`: latest commit is `7a2472dc87f4f3bdc7d8db5ef450903ade2f0328` (`docs: correct README claims and setup instructions`).
-- Latest main Vercel production deployment: READY and mapped to the exact latest main commit.
+- GitHub `main`: application/README verification commit is `7a2472dc87f4f3bdc7d8db5ef450903ade2f0328` (`docs: correct README claims and setup instructions`).
+- A subsequent documentation-only tracker synchronization commit follows that verification checkpoint; the tracker intentionally does not self-reference its own commit SHA.
+- Latest main Vercel production deployment: READY and mapped to the latest main commit.
 - GitHub Build Check for latest main: PASS (Vercel).
 - Production HTML response for latest main deployment: HTTP 200.
 - Static browser deep audit: PASS on the unchanged application code state; latest main changes in this cycle are documentation-only.
