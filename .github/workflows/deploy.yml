@@ -2,7 +2,7 @@ name: Build Check
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "repair-tools-956-1000-2026-09-14"]
   workflow_dispatch:
 
 permissions:
@@ -18,10 +18,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install dependencies
         run: npm ci || npm install
+
+      - name: TypeScript check
+        run: npm run lint
+
+      - name: Tool source integrity
+        run: node scripts/verify-tools.mjs
+
+      - name: 956-1000 repair smoke check
+        run: node scripts/repair-smoke-tests.mjs
+
+      - name: 1-1000 runtime smoke check
+        run: npx tsx scripts/runtime-tool-smoke.ts
 
       - name: Build project
         run: npm run build

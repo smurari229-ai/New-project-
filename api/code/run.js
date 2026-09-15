@@ -1,4 +1,4 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../_lib/gemini.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -46,7 +46,7 @@ ${code.slice(0, 10000)}
       const { response, modelUsed } = await generateWithFallback(ai, {
         preferredModel: "gemini-3.8-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: { temperature: 0.1, responseMimeType: "application/json" },
+        config: { responseMimeType: "application/json" },
       });
 
       const parsed = JSON.parse(response.text || "{}");

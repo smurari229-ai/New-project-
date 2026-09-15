@@ -1,11 +1,20 @@
-// General Utilities for 150 Coding Super Hub Tools
+// General Utilities for Coding Super Hub's 1,000-tool registry
 
 export function safeBase64Encode(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)));
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
 }
 
 export function safeBase64Decode(str: string): string {
-  return decodeURIComponent(escape(atob(str)));
+  const normalized = str.trim();
+  const binary = atob(normalized);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 export function generateUUIDv4(): string {
@@ -146,11 +155,15 @@ export function csvToJson(csvText: string): any[] {
         current += ch;
       }
     }
+    if (inQuotes) throw new Error("Malformed CSV: unclosed quoted field");
     result.push(current);
     return result;
   };
 
   const headers = parseLine(lines[0]);
+  if (headers.length === 0 || headers.some((h) => !h.trim())) {
+    throw new Error("CSV header contains an empty column name");
+  }
   return lines.slice(1).map((line) => {
     const values = parseLine(line);
     const obj: Record<string, string> = {};
@@ -207,8 +220,12 @@ export function textToBinaryString(text: string): string {
 }
 
 export function binaryStringToText(binaryStr: string): string {
-  const clean = binaryStr.trim().split(/\s+/);
-  const bytes = new Uint8Array(clean.map((bin) => parseInt(bin, 2)));
+  const tokens = binaryStr.trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return "";
+  if (tokens.some((bin) => !/^[01]{1,8}$/.test(bin))) {
+    throw new Error("Invalid binary input: use 1-8 bit binary groups separated by spaces");
+  }
+  const bytes = new Uint8Array(tokens.map((bin) => parseInt(bin, 2)));
   return new TextDecoder().decode(bytes);
 }
 
@@ -219,7 +236,11 @@ export function stringToHex(text: string): string {
 }
 
 export function hexToString(hexStr: string): string {
-  const clean = hexStr.replace(/[^0-9A-Fa-f]/g, "");
+  const clean = hexStr.replace(/\s+/g, "");
+  if (!clean) return "";
+  if (!/^[0-9A-Fa-f]+$/.test(clean) || clean.length % 2 !== 0) {
+    throw new Error("Invalid hexadecimal input: use complete byte pairs");
+  }
   const bytes = new Uint8Array(clean.length / 2);
   for (let i = 0; i < clean.length; i += 2) {
     bytes[i / 2] = parseInt(clean.substring(i, i + 2), 16);
@@ -254,7 +275,7 @@ export function safeStorageRemove(key: string): void {
       window.localStorage.removeItem(key);
     }
   } catch {
-    // Gracefully handle iframe or restricted cookie exceptions
+    // Gracefully handle restricted storage exceptions
   }
 }
 
@@ -290,4 +311,3 @@ export async function safeCopyToClipboard(text: string): Promise<boolean> {
   }
   return false;
 }
-
