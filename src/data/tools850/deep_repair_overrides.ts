@@ -2,7 +2,7 @@ import { DynamicTool } from "./definitions";
 
 const clean = (value: string) => String(value ?? "").trim();
 const nums = (value: string) => (clean(value).match(/-?\d+(?:\.\d+)?/g) || []).map(Number).filter(Number.isFinite);
-const safe = (value: string) => clean(value).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c] || c));
+const safe = (value: string) => clean(value).replace(/[<>&]/g, (c) => c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&amp;");
 const slug = (value: string) => clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "example";
 
 function titleSpecificResult(title: string, value: string, second = "") {
