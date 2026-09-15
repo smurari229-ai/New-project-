@@ -1,4 +1,6 @@
-import { DYNAMIC_METADATA_LIST } from "./tools850";
+import { DYNAMIC_TOOL_METADATA } from "./generatedToolMetadata";
+
+const DYNAMIC_METADATA_LIST = DYNAMIC_TOOL_METADATA;
 import { ToolMetadata } from "../types";
 
 export const STATIC_TOOLS_METADATA = [
