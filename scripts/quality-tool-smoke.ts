@@ -5,6 +5,7 @@ const FORBIDDEN_PLACEHOLDER_OUTPUTS = [
   "Ready for deployment.",
   "Ready for production runtime.",
   "Generated starter output:",
+  "Reference result:\nThis title has a dedicated result path",
 ];
 
 const failures: string[] = [];
