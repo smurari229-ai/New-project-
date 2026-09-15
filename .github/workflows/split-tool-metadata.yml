@@ -25,9 +25,9 @@ jobs:
 
       - name: Generate lightweight dynamic metadata module
         run: |
-          node --input-type=module <<'NODE'
+          npx tsx <<'TS'
           import { writeFileSync } from 'node:fs';
-          const { ALL_850_TOOLS } = await import('./src/data/tools850/index.ts');
+          import { ALL_850_TOOLS } from './src/data/tools850/index.ts';
           const metadata = ALL_850_TOOLS.map((t) => ({
             id: t.id,
             title: t.title,
@@ -39,7 +39,7 @@ jobs:
             'src/data/generatedToolMetadata.ts',
             `export const DYNAMIC_TOOL_METADATA = ${JSON.stringify(metadata, null, 2)};\n`,
           );
-          NODE
+          TS
 
       - name: Disconnect browser metadata from executable registry
         run: |
