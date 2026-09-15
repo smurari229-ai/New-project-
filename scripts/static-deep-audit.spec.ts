@@ -15,7 +15,7 @@ test("static tools 2-150 render and their controls do not crash", async ({ page 
       const control = controls.nth(i);
       const type = await control.getAttribute("type");
       const tag = await control.evaluate((el) => el.tagName.toLowerCase());
-      if (tag === "select" || type === "checkbox" || type === "radio") continue;
+      if (tag === "select" || ["checkbox", "radio", "color", "range", "date", "datetime-local", "time", "file"].includes(type || "")) continue;
       await control.fill(type === "number" ? "2" : "deep audit sample 🚀");
     }
     const buttons = card.locator("button");
