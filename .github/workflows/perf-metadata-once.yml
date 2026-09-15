@@ -26,6 +26,7 @@ jobs:
             let src = fs.readFileSync(file, 'utf8');
             src = src.replace(/^import[^\n]*\n/gm, '');
             src = src.replace(/export const /g, 'const ');
+            src = src.replace(/:\s*ToolMetadata\[\]/g, '');
             src += `\nmodule.exports = ${exportName};\n`;
             const context = { module: { exports: {} } };
             vm.runInNewContext(src, context, { filename: file });
