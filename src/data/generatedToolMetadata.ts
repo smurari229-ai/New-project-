@@ -1,4 +1,6 @@
-export const DYNAMIC_TOOL_METADATA = [
+import type { ToolMetadata } from "../types";
+
+export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   {
     "id": 151,
     "title": "PascalCase Converter",
