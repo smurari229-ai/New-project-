@@ -69,13 +69,16 @@ for (const tool of ALL_850_TOOLS) {
   }
 }
 
-const passRate = ((ALL_850_TOOLS.length - failures.length) / ALL_850_TOOLS.length) * 100;
-console.log(`Dynamic runtime smoke: ${ALL_850_TOOLS.length - failures.length}/${ALL_850_TOOLS.length} passed (${passRate.toFixed(2)}%).`);
+const passed = ALL_850_TOOLS.length - failures.length;
+const passRate = (passed / ALL_850_TOOLS.length) * 100;
+console.log(`Dynamic runtime smoke: ${passed}/${ALL_850_TOOLS.length} passed (${passRate.toFixed(2)}%).`);
 console.log("Registry self-check: 1-1000 metadata, 151-1000 dynamic IDs, duplicate IDs/titles, and tool 1000 verifier passed.");
 
 if (failures.length > 0) {
   console.error(failures.slice(0, 25).join("\n"));
+  throw new Error(`Dynamic runtime smoke is not 100%: ${failures.length} tool(s) failed.`);
 }
-if (passRate < 95) {
-  throw new Error(`Dynamic runtime smoke is below the 95% target: ${passRate.toFixed(2)}%.`);
+
+if (passRate !== 100) {
+  throw new Error(`Dynamic runtime smoke is not 100%: ${passRate.toFixed(2)}%.`);
 }
