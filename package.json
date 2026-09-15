@@ -10,7 +10,12 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "generate:pdf": "node scripts/generate_code_pdf_v2.cjs",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:tools": "node scripts/verify-tools.mjs",
+    "test:repair": "node scripts/repair-smoke-tests.mjs",
+    "test:quality": "tsx scripts/quality-tool-smoke.ts",
+    "test:runtime": "tsx scripts/runtime-tool-smoke.ts",
+    "test:static": "npx playwright test --config=playwright.static-audit.config.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -31,9 +36,9 @@
     "@types/pdfkit": "^0.17.6",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.21.0",
+    "tailwindcss": "^4.1.0",
     "typescript": "~5.8.2",
+    "tsx": "^4.21.0",
     "vite": "^6.2.3"
   }
 }
