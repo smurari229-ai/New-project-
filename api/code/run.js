@@ -1,8 +1,14 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError } from "../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const rate = checkRateLimit(req, "code-run", 10, 60_000);
+  if (!rate.allowed) {
+    res.setHeader("Retry-After", String(rate.retryAfter));
+    return res.status(429).json({ error: "Too many code-run requests. Please retry shortly." });
   }
 
   try {
