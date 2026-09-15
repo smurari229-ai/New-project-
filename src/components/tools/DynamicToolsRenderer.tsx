@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ToolCard } from "../ToolCard";
-import { ALL_850_TOOLS } from "../../data/tools850";
-import { DynamicTool } from "../../data/tools850/definitions";
+import type { DynamicTool } from "../../data/tools850/definitions";
 import { ToolCategory } from "../../types";
 import { Play, RotateCcw, ChevronDown } from "lucide-react";
 
@@ -16,11 +15,57 @@ export const DynamicToolsRenderer: React.FC<DynamicToolsRendererProps> = ({
   searchQuery,
   selectedCategory,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [nearViewport, setNearViewport] = useState(false);
+  const [tools, setTools] = useState<DynamicTool[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
 
+  // The 850-tool registry is the largest client-side payload. Keep it out of
+  // the initial bundle and load it only when the tools section is approaching
+  // the viewport (or when the browser does not support IntersectionObserver).
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || typeof IntersectionObserver === "undefined") {
+      setNearViewport(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setNearViewport(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "700px 0px" },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!nearViewport || tools) return;
+
+    let cancelled = false;
+    import("../../data/tools850")
+      .then(({ ALL_850_TOOLS }) => {
+        if (!cancelled) setTools(ALL_850_TOOLS);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nearViewport, tools]);
+
   const filteredTools = useMemo(() => {
+    if (!tools) return [];
     const q = searchQuery.toLowerCase().trim();
-    return ALL_850_TOOLS.filter((tool) => {
+    return tools.filter((tool) => {
       const matchesCategory = selectedCategory === "All" || selectedCategory === tool.category;
       if (!matchesCategory) return false;
       if (!q) return true;
@@ -33,34 +78,54 @@ export const DynamicToolsRenderer: React.FC<DynamicToolsRendererProps> = ({
         (tool.keywords && tool.keywords.some((k) => k.toLowerCase().includes(q)))
       );
     });
-  }, [searchQuery, selectedCategory]);
+  }, [tools, searchQuery, selectedCategory]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setVisibleLimit(PAGE_SIZE);
   }, [searchQuery, selectedCategory]);
 
   const displayedTools = filteredTools.slice(0, visibleLimit);
-  if (displayedTools.length === 0) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {displayedTools.map((tool) => <DynamicToolItem key={tool.id} tool={tool} />)}
-      </div>
-      {visibleLimit < filteredTools.length && (
-        <div className="flex flex-col items-center justify-center pt-6 pb-2">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-            Showing {displayedTools.length} of {filteredTools.length} matching tools
+    <div ref={containerRef} className="space-y-6" aria-busy={!tools && !loadError}>
+      {!tools && !loadError && (
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Preparing the 850-tool registry…
           </p>
-          <button
-            onClick={() => setVisibleLimit((prev) => prev + PAGE_SIZE)}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
-          >
-            <span>Load More Tools ({filteredTools.length - visibleLimit} remaining)</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
         </div>
       )}
+
+      {loadError && (
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 p-6 text-center">
+          <p className="text-xs text-rose-700 dark:text-rose-300">
+            The dynamic tool registry could not be loaded. Please refresh and try again.
+          </p>
+        </div>
+      )}
+
+      {tools && displayedTools.length === 0 ? null : tools ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {displayedTools.map((tool) => <DynamicToolItem key={tool.id} tool={tool} />)}
+          </div>
+          {visibleLimit < filteredTools.length && (
+            <div className="flex flex-col items-center justify-center pt-6 pb-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                Showing {displayedTools.length} of {filteredTools.length} matching tools
+              </p>
+              <button
+                type="button"
+                onClick={() => setVisibleLimit((prev) => prev + PAGE_SIZE)}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Load More Tools ({filteredTools.length - visibleLimit} remaining)</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </>
+      ) : null}
     </div>
   );
 };
@@ -99,6 +164,7 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
       <div className="space-y-3">
         {tool.inputType === "action" ? (
           <button
+            type="button"
             onClick={() => execute("", "")}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors cursor-pointer"
           >
@@ -152,11 +218,11 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
 
         <div className="flex items-center justify-between pt-1">
           {tool.inputType !== "action" && (
-            <button onClick={() => execute(val1,val2)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer">
+            <button type="button" onClick={() => execute(val1,val2)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer">
               <Play className="w-3.5 h-3.5" /><span>Run Tool</span>
             </button>
           )}
-          <button onClick={handleReset} title="Reset to default sample" className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer">
+          <button type="button" onClick={handleReset} title="Reset to default sample" className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer">
             <RotateCcw className="w-3 h-3" /><span>Reset</span>
           </button>
         </div>
