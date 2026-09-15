@@ -49,9 +49,12 @@ jobs:
           s = p.read_text()
           old = 'import { DYNAMIC_METADATA_LIST } from "./tools850";'
           new = 'import { DYNAMIC_TOOL_METADATA } from "./generatedToolMetadata";\n\nconst DYNAMIC_METADATA_LIST = DYNAMIC_TOOL_METADATA;'
-          if old not in s:
+          if old in s:
+              p.write_text(s.replace(old, new, 1))
+          elif 'import { DYNAMIC_TOOL_METADATA } from "./generatedToolMetadata";' in s:
+              print('metadata import already split; continuing')
+          else:
               raise SystemExit('Expected toolsMetadata import not found')
-          p.write_text(s.replace(old, new, 1))
           PY
 
       - name: TypeScript check
@@ -74,5 +77,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/data/generatedToolMetadata.ts src/data/toolsMetadata.ts
-          git commit -m "perf: split executable tool registry from metadata" || true
+          git diff --cached --quiet || git commit -m "perf: split executable tool registry from metadata"
           git push
