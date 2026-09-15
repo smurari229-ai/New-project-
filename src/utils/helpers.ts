@@ -48,8 +48,14 @@ export function decodeJWTToken(token: string): { header: any; payload: any; isEx
 
   const decodePart = (part: string) => {
     const base64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    if (base64.length % 4 === 1) {
+      throw new Error("Invalid JWT Base64 segment");
+    }
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    return JSON.parse(atob(padded));
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return JSON.parse(decoded);
   };
 
   const header = decodePart(parts[0]);
@@ -265,7 +271,7 @@ export function safeStorageSet(key: string, value: string): void {
       window.localStorage.setItem(key, value);
     }
   } catch {
-    // Gracefully handle iframe or restricted cookie exceptions
+    // Gracefully handle iframe or restricted storage exceptions
   }
 }
 
