@@ -68,10 +68,11 @@ export const DynamicToolsRenderer: React.FC<DynamicToolsRendererProps> = ({
 interface DynamicToolItemProps { tool: DynamicTool; }
 
 const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
-  const [val1, setVal1] = useState<string>(tool.default1 ?? "");
+  const initialValue1 = tool.default1 ?? (tool.inputType === "select-text" ? tool.options?.[0]?.value ?? "" : "");
+  const [val1, setVal1] = useState<string>(initialValue1);
   const [val2, setVal2] = useState<string>(tool.default2 ?? "");
   const [output, setOutput] = useState<string>(() => {
-    try { return tool.run(tool.default1 ?? "", tool.default2 ?? ""); }
+    try { return tool.run(initialValue1, tool.default2 ?? ""); }
     catch { return ""; }
   });
   const [isError, setIsError] = useState(false);
@@ -87,7 +88,7 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
   };
 
   const handleReset = () => {
-    const d1 = tool.default1 ?? "";
+    const d1 = tool.default1 ?? (tool.inputType === "select-text" ? tool.options?.[0]?.value ?? "" : "");
     const d2 = tool.default2 ?? "";
     setVal1(d1); setVal2(d2); execute(d1, d2);
   };
