@@ -11,7 +11,8 @@ import { ToolsAdvancedDev } from "./components/tools/ToolsAdvancedDev";
 import { DynamicToolsRenderer } from "./components/tools/DynamicToolsRenderer";
 import { ToolCategory } from "./types";
 import { safeStorageGet, safeStorageSet } from "./utils/helpers";
-import { ALL_TOOLS_METADATA } from "./data/toolsMetadata";
+import type { ToolMetadata } from "./types";
+import { TOOL_METADATA_INDEX } from "./data/toolMetadataIndex";
 import { LANGUAGE_CATALOG } from "./data/languages";
 import {
   Wrench,
@@ -52,26 +53,42 @@ export default function App() {
   const [activeCode, setActiveCode] = useState("");
   const [activeLanguage, setActiveLanguage] = useState("HTML");
   const [incomingAiQuery, setIncomingAiQuery] = useState("");
+  const [fullSearchMetadata, setFullSearchMetadata] = useState<ToolMetadata[] | null>(null);
   const activeCodeGetterRef = useRef<(() => { tab: string; code: string }) | null>(null);
   const applyCodeToEditorRef = useRef<((lang: string, code: string) => void) | null>(null);
 
   // Dynamically compute category counts from tools registry
   const dynamicCategoryCounts = useMemo(() => {
     const counts: Record<string, number> = {
-      All: ALL_TOOLS_METADATA.length,
+      All: TOOL_METADATA_INDEX.length,
     };
-    for (const t of ALL_TOOLS_METADATA) {
+    for (const t of TOOL_METADATA_INDEX) {
       counts[t.category] = (counts[t.category] || 0) + 1;
     }
     return counts;
   }, []);
 
-  // Compute number of matching tools for active search & category
+  // Load verbose descriptions/keywords only when a real text search needs them.
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFullSearchMetadata(null);
+      return;
+    }
+    let cancelled = false;
+    import("./data/toolsMetadata").then(({ ALL_TOOLS_METADATA }) => {
+      if (!cancelled) setFullSearchMetadata(ALL_TOOLS_METADATA);
+    }).catch(() => {
+      if (!cancelled) setFullSearchMetadata([]);
+    });
+    return () => { cancelled = true; };
+  }, [searchQuery]);
+
+  // Compute matching count from the compact index; hydrate verbose metadata only for search.
   const matchingToolsCount = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    return ALL_TOOLS_METADATA.filter((t) => {
-      const matchesCategory =
-        selectedCategory === "All" || selectedCategory === t.category;
+    const source = q ? (fullSearchMetadata ?? []) : TOOL_METADATA_INDEX;
+    return source.filter((t) => {
+      const matchesCategory = selectedCategory === "All" || selectedCategory === t.category;
       if (!matchesCategory) return false;
       if (!q) return true;
       return (
@@ -83,7 +100,7 @@ export default function App() {
         (t.keywords && t.keywords.some((k) => k.toLowerCase().includes(q)))
       );
     }).length;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, fullSearchMetadata]);
 
   // Sync dark mode class
   useEffect(() => {
@@ -178,7 +195,7 @@ export default function App() {
         onSelectCategory={setSelectedCategory}
         onOpenShortcuts={() => setShowShortcuts(true)}
         categoryCounts={dynamicCategoryCounts}
-        totalTools={ALL_TOOLS_METADATA.length}
+        totalTools={TOOL_METADATA_INDEX.length}
         onJumpToSection={scrollToSection}
       />
 
@@ -195,7 +212,7 @@ export default function App() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              {ALL_TOOLS_METADATA.length.toLocaleString()} Developer Tools, Multi-Language Sandbox & AI Assistant
+              {TOOL_METADATA_INDEX.length.toLocaleString()} Developer Tools, Multi-Language Sandbox & AI Assistant
             </h1>
 
             <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed">
@@ -215,7 +232,7 @@ export default function App() {
                 onClick={() => scrollToSection("all-tools-grid")}
                 className="px-4 py-2.5 bg-blue-700/60 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs sm:text-sm border border-white/20 transition"
               >
-                Browse {ALL_TOOLS_METADATA.length.toLocaleString()} Tools
+                Browse {TOOL_METADATA_INDEX.length.toLocaleString()} Tools
               </button>
               <button
                 type="button"
@@ -231,7 +248,7 @@ export default function App() {
           {/* Quick Metrics Bar in Hero */}
           <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
-              <div className="text-xl sm:text-2xl font-black text-white">{ALL_TOOLS_METADATA.length.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-black text-white">{TOOL_METADATA_INDEX.length.toLocaleString()}</div>
               <div className="text-xs text-blue-200">Developer Tools</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
@@ -258,7 +275,7 @@ export default function App() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-500 transition flex items-center space-x-1.5"
             >
               <Wrench className="w-3.5 h-3.5 text-blue-500" />
-              <span>{ALL_TOOLS_METADATA.length.toLocaleString()} Tools Grid</span>
+              <span>{TOOL_METADATA_INDEX.length.toLocaleString()} Tools Grid</span>
             </button>
             <button
               type="button"
@@ -340,7 +357,7 @@ export default function App() {
               <div className="flex items-center space-x-2">
                 <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Developer Toolbox ({ALL_TOOLS_METADATA.length.toLocaleString()} Tools)
+                  Developer Toolbox ({TOOL_METADATA_INDEX.length.toLocaleString()} Tools)
                 </h2>
                 <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   {selectedCategory === "All" ? "All Categories" : selectedCategory}
@@ -407,7 +424,7 @@ export default function App() {
                     onClick={() => setSelectedCategory("All")}
                     className="px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-300 dark:border-slate-700 transition"
                   >
-                    View All Categories ({ALL_TOOLS_METADATA.length.toLocaleString()} tools)
+                    View All Categories ({TOOL_METADATA_INDEX.length.toLocaleString()} tools)
                   </button>
                 )}
               </div>
@@ -518,7 +535,7 @@ export default function App() {
               onClick={() => scrollToSection("all-tools-grid")}
               className="hover:text-blue-600 transition"
             >
-              {ALL_TOOLS_METADATA.length.toLocaleString()} Tools
+              {TOOL_METADATA_INDEX.length.toLocaleString()} Tools
             </button>
             <button
               type="button"
@@ -537,7 +554,7 @@ export default function App() {
             </a>
           </div>
           <p>
-            Coding Super Hub &bull; {ALL_TOOLS_METADATA.length.toLocaleString()} developer tools, interactive code sandbox & Gemini AI integration.
+            Coding Super Hub &bull; {TOOL_METADATA_INDEX.length.toLocaleString()} developer tools, interactive code sandbox & Gemini AI integration.
           </p>
         </footer>
       </main>
