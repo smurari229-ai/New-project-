@@ -58,7 +58,7 @@ jobs:
           fs.writeFileSync('src/data/toolsMetadata.ts', patched);
           console.log(`Aligned ${changed} first-150 metadata titles.`);
 
-          const compact = execFileSync('npx', ['tsx', '-e', 'import { ALL_TOOLS_METADATA } from "./src/data/toolsMetadata"; console.log(JSON.stringify(ALL_TOOLS_METADATA.map(({id,title,category}) => ({id,title,category})))'], {encoding:'utf8'}).trim();
+          const compact = execFileSync('npx', ['tsx', '-e', 'import { ALL_TOOLS_METADATA } from "./src/data/toolsMetadata"; console.log(JSON.stringify(ALL_TOOLS_METADATA.map(({id,title,category}) => ({id,title,category}))))'], {encoding:'utf8'}).trim();
           const indexContent = `// Generated compact browser index. Full descriptions/keywords remain lazy-loaded for search.\nexport const TOOL_METADATA_INDEX = ${compact};\n`;
           fs.writeFileSync('src/data/toolMetadataIndex.ts', indexContent);
           NODE
@@ -73,6 +73,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/data/toolsMetadata.ts src/data/toolMetadataIndex.ts
-          git rm .github/workflows/temporary-component-quality-fix.yml .github/workflows/temporary-component-quality-audit.yml .audit-component-trigger
+          git rm .github/workflows/temporary-component-quality-fix.yml .github/workflows/temporary-component-quality-audit.yml .audit-component-trigger .audit-quality-fix-trigger
           git commit -m "fix: align tool metadata with first-150 UI titles"
           git push
