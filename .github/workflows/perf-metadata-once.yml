@@ -22,12 +22,15 @@ jobs:
           const fs = require('fs');
           const vm = require('vm');
 
-          function loadExportFromTs(file, exportName) {
+          function loadExportFromTs(file, exportName, overrides = {}) {
             let src = fs.readFileSync(file, 'utf8');
             src = src.replace(/^import[^\n]*\n/gm, '');
             src = src.replace(/export const /g, 'const ');
             src = src.replace(/:\s*ToolMetadata(?:\[\])?/g, '');
             src = src.replaceAll('as const', '');
+            for (const [name, value] of Object.entries(overrides)) {
+              src = src.replace(new RegExp(`const ${name} = [^;]+;`), `const ${name} = ${value};`);
+            }
             src += `\nmodule.exports = ${exportName};\n`;
             const context = { module: { exports: {} } };
             vm.runInNewContext(src, context, { filename: file });
@@ -35,7 +38,7 @@ jobs:
           }
 
           const dynamic = loadExportFromTs('src/data/generatedToolMetadata.ts', 'DYNAMIC_TOOL_METADATA');
-          const staticMetadata = loadExportFromTs('src/data/toolsMetadata.ts', 'STATIC_TOOLS_METADATA');
+          const staticMetadata = loadExportFromTs('src/data/toolsMetadata.ts', 'STATIC_TOOLS_METADATA', { DYNAMIC_METADATA_LIST: '[]' });
           const all = [...staticMetadata, ...dynamic];
           const index = all.map(({id, title, category}) => ({id, title, category}));
           const seen = new Set();
