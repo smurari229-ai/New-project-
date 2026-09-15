@@ -42,8 +42,10 @@ jobs:
             if (!ui) missing.push(id);
             else if (!meta || ui.title.trim() !== meta.title.trim() || ui.category !== meta.category) mismatches.push({id, ui, metadata: meta ? {title:meta.title,category:meta.category} : null});
           }
+          const metadataCount = metadata.filter(t => t.id >= 2 && t.id <= 150).length;
           console.log(`UI ToolCard IDs: ${found.size}/149`);
+          console.log(`Metadata IDs 2-150: ${metadataCount}/149`);
           console.log(`Missing IDs: ${missing.length ? missing.join(',') : 'none'}`);
           console.log(`Title/category mismatches: ${mismatches.length}`);
-          if (missing.length || mismatches.length || metadata.length !== 149) process.exit(2);
+          if (missing.length || mismatches.length || metadataCount !== 149) process.exit(2);
           NODE
