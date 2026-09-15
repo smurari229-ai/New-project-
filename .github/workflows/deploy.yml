@@ -15,25 +15,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          bun-version: latest
+          node-version: 24
+          cache: npm
 
-      - name: Install dependencies from lockfile
-        run: bun install --frozen-lockfile
+      - name: Install dependencies from npm lockfile
+        run: npm ci
 
       - name: TypeScript check
-        run: bun run lint
+        run: npm run lint
 
       - name: Tool source integrity
-        run: bun run scripts/verify-tools.mjs
+        run: node scripts/verify-tools.mjs
 
       - name: 956-1000 repair smoke check
-        run: bun run scripts/repair-smoke-tests.mjs
+        run: node scripts/repair-smoke-tests.mjs
 
       - name: 1-1000 runtime smoke check
-        run: bunx tsx scripts/runtime-tool-smoke.ts
+        run: npx tsx scripts/runtime-tool-smoke.ts
 
       - name: Build project
-        run: bun run build
+        run: npm run build
