@@ -48,9 +48,7 @@ function isTransientError(error: any): boolean {
 }
 
 function getClientIp(req: express.Request): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  const realIp = req.headers["x-real-ip"];
-  return String(forwarded || realIp || req.ip || "unknown").split(",")[0].trim() || "unknown";
+  return String(req.ip || req.socket.remoteAddress || "unknown").trim() || "unknown";
 }
 
 // Lightweight per-instance protection for Render/local full-stack deployments.
