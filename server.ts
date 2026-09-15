@@ -144,16 +144,16 @@ Your goal:
           if (item && item.text) {
             contents.push({
               role: item.role === "bot" || item.role === "model" ? "model" : "user",
-              parts: [{ text: String(item.text) }],
+              parts: [{ text: String(item.text).slice(0, 20000) }],
             });
           }
         }
       }
 
-      // Add current user prompt
+      // Add current user prompt with the same production input bound
       contents.push({
         role: "user",
-        parts: [{ text: prompt.trim() }],
+        parts: [{ text: prompt.trim().slice(0, 20000) }],
       });
 
       const { response, modelUsed } = await generateWithFallback(ai, {
@@ -161,7 +161,6 @@ Your goal:
         contents,
         config: {
           systemInstruction,
-          temperature: 0.7,
         },
       });
 
@@ -236,7 +235,6 @@ ${code.slice(0, 10000)}
           preferredModel: "gemini-3.8-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           config: {
-            temperature: 0.1,
             responseMimeType: "application/json",
           },
         });
