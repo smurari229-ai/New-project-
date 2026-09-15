@@ -27,7 +27,7 @@ jobs:
             src = src.replace(/^import[^\n]*\n/gm, '');
             src = src.replace(/export const /g, 'const ');
             src = src.replace(/:\s*ToolMetadata\[\]/g, '');
-            src = src.replace(/\s+as const;/g, ';');
+            src = src.replaceAll('as const;', ';');
             src += `\nmodule.exports = ${exportName};\n`;
             const context = { module: { exports: {} } };
             vm.runInNewContext(src, context, { filename: file });
