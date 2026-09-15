@@ -8,6 +8,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const PORT = 3000;
+const MAX_JSON_BODY = "512kb";
+const MAX_PROMPT_LENGTH = 20_000;
+const MAX_CODE_LENGTH = 10_000;
+const MAX_CUSTOM_KEY_LENGTH = 256;
 
 // Valid models from @google/genai guidelines with high-throughput fallbacks
 const CANDIDATE_MODELS = [
@@ -41,6 +45,47 @@ function isTransientError(error: any): boolean {
     msg.includes("spikes in demand are usually temporary") ||
     msg.includes("try again later")
   );
+}
+
+function getClientIp(req: express.Request): string {
+  return String(req.ip || req.socket.remoteAddress || "unknown").trim() || "unknown";
+}
+
+// Lightweight per-instance protection for Render/local full-stack deployments.
+// Vercel API routes have their own limiter; this keeps the alternate server path
+// from exposing an unbounded Gemini request surface.
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+function checkRateLimit(req: express.Request, scope: string, limit: number, windowMs = 60_000) {
+  const now = Date.now();
+  const key = `${scope}:${getClientIp(req)}`;
+  const existing = rateLimitBuckets.get(key);
+  if (!existing || now >= existing.resetAt) {
+    rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfter: 0 };
+  }
+  if (existing.count >= limit) {
+    return { allowed: false, retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)) };
+  }
+  existing.count += 1;
+  return { allowed: true, retryAfter: 0 };
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of rateLimitBuckets) {
+    if (now >= bucket.resetAt) rateLimitBuckets.delete(key);
+  }
+}, 5 * 60_000).unref();
+
+function validateApiInput(promptOrCode: unknown, customApiKey: unknown, maxLength: number) {
+  if (typeof promptOrCode !== "string" || !promptOrCode.trim()) return "Input is required";
+  if (promptOrCode.length > maxLength) return `Input exceeds the ${maxLength.toLocaleString()} character limit`;
+  if (customApiKey !== undefined && customApiKey !== null) {
+    if (typeof customApiKey !== "string" || customApiKey.length > MAX_CUSTOM_KEY_LENGTH) {
+      return "Custom API key is invalid or too long";
+    }
+  }
+  return null;
 }
 
 async function generateWithFallback(
@@ -91,7 +136,21 @@ async function generateWithFallback(
 
 async function startServer() {
   const app = express();
-  app.use(express.json({ limit: "10mb" }));
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+  app.use(express.json({ limit: MAX_JSON_BODY }));
+
+  // Match the hardened Vercel response policy on the alternate Express path.
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.setHeader("X-Frame-Options", "DENY");
+    if (process.env.NODE_ENV === "production") {
+      res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
+    next();
+  });
 
   // Health check endpoint
   app.get("/api/health", (_req, res) => {
@@ -100,11 +159,18 @@ async function startServer() {
 
   // Server-side Gemini AI generation endpoint
   app.post("/api/ai/ask", async (req, res) => {
-    try {
-      const { prompt, history = [], language = "javascript", customApiKey } = req.body;
+    const rate = checkRateLimit(req, "ai-ask", 20);
+    if (!rate.allowed) {
+      res.setHeader("Retry-After", String(rate.retryAfter));
+      return res.status(429).json({ error: "Too many AI requests. Please retry shortly." });
+    }
 
-      if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-        return res.status(400).json({ error: "Prompt is required" });
+    try {
+      const { prompt, history = [], language = "javascript", customApiKey } = req.body || {};
+      const validationError = validateApiInput(prompt, customApiKey, MAX_PROMPT_LENGTH);
+      if (validationError) return res.status(400).json({ error: validationError });
+      if (typeof language !== "string" || language.length > 100) {
+        return res.status(400).json({ error: "Language value is invalid" });
       }
 
       const apiKey =
@@ -138,33 +204,29 @@ Your goal:
 
       const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-      // Add conversation history if present
       if (Array.isArray(history)) {
         for (const item of history.slice(-8)) {
           if (item && item.text) {
             contents.push({
               role: item.role === "bot" || item.role === "model" ? "model" : "user",
-              parts: [{ text: String(item.text).slice(0, 20000) }],
+              parts: [{ text: String(item.text).slice(0, 4_000) }],
             });
           }
         }
       }
 
-      // Add current user prompt with the same production input bound
       contents.push({
         role: "user",
-        parts: [{ text: prompt.trim().slice(0, 20000) }],
+        parts: [{ text: prompt.trim().slice(0, MAX_PROMPT_LENGTH) }],
       });
 
       const { response, modelUsed } = await generateWithFallback(ai, {
         preferredModel: "gemini-3.8-flash",
         contents,
-        config: {
-          systemInstruction,
-        },
+        config: { systemInstruction },
       });
 
-      const text = response.text || "No response generated.";
+      const text = String(response.text || "No response generated.").slice(0, 40_000);
       return res.json({ answer: text, modelUsed });
     } catch (error: any) {
       console.error("Gemini API error:", error);
@@ -179,12 +241,21 @@ Your goal:
     }
   });
 
-  // Multi-Language Code Runner Endpoint (Python, C++, Rust, Go, Java, Bash, PHP, etc.)
+  // Multi-Language Code Runner Endpoint. This is intentionally AI-assisted
+  // simulation, not a native compiler/runtime sandbox.
   app.post("/api/code/run", async (req, res) => {
+    const rate = checkRateLimit(req, "code-run", 10);
+    if (!rate.allowed) {
+      res.setHeader("Retry-After", String(rate.retryAfter));
+      return res.status(429).json({ error: "Too many code-run requests. Please retry shortly." });
+    }
+
     try {
-      const { language = "text", code, customApiKey } = req.body;
-      if (!code || typeof code !== "string" || !code.trim()) {
-        return res.status(400).json({ error: "Code is required to run." });
+      const { language = "text", code, customApiKey } = req.body || {};
+      const validationError = validateApiInput(code, customApiKey, MAX_CODE_LENGTH);
+      if (validationError) return res.status(400).json({ error: validationError });
+      if (typeof language !== "string" || language.length > 100) {
+        return res.status(400).json({ error: "Language value is invalid" });
       }
 
       const apiKey =
@@ -226,7 +297,7 @@ Do not include any other markdown or text outside the JSON object.
 
 Code:
 \`\`\`${language.toLowerCase()}
-${code.slice(0, 10000)}
+${code.trim().slice(0, MAX_CODE_LENGTH)}
 \`\`\``;
 
       let parsed;
@@ -234,16 +305,19 @@ ${code.slice(0, 10000)}
         const { response, modelUsed } = await generateWithFallback(ai, {
           preferredModel: "gemini-3.8-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            responseMimeType: "application/json",
-          },
+          config: { responseMimeType: "application/json" },
         });
 
         const raw = response.text || "{}";
         parsed = JSON.parse(raw);
-        if (!parsed.notes) {
-          parsed.notes = `${language} virtual runtime (${modelUsed})`;
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Virtual runtime returned an invalid response object.");
         }
+        parsed.stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, 40_000) : "";
+        parsed.stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, 40_000) : "";
+        parsed.exitCode = Number.isFinite(Number(parsed.exitCode)) ? Math.trunc(Number(parsed.exitCode)) : 1;
+        parsed.executionTime = typeof parsed.executionTime === "string" && parsed.executionTime.trim() ? parsed.executionTime.slice(0, 100) : "0.00s";
+        parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} virtual runtime (${modelUsed})`;
       } catch (geminiErr: any) {
         if (isTransientError(geminiErr)) {
           return res.status(200).json({
@@ -262,7 +336,7 @@ ${code.slice(0, 10000)}
       console.error("Code runner API error:", error);
       return res.status(500).json({
         stdout: "",
-        stderr: `Runner Error: ${error?.message || "Execution failed"}`,
+        stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, 40_000),
         exitCode: 1,
         executionTime: "0.00s",
         notes: "Execution halted",

@@ -1,5 +1,9 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
 
+const MAX_OUTPUT_LENGTH = 40_000;
+const MAX_NOTES_LENGTH = 2_000;
+const MAX_EXECUTION_TIME_LENGTH = 100;
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -15,6 +19,12 @@ export default async function handler(req, res) {
     const { language = "text", code, customApiKey } = req.body || {};
     if (!code || typeof code !== "string" || !code.trim()) {
       return res.status(400).json({ error: "Code is required to run." });
+    }
+    if (code.length > 10_000) {
+      return res.status(400).json({ error: "Code exceeds the 10,000 character limit." });
+    }
+    if (typeof language !== "string" || language.length > 100) {
+      return res.status(400).json({ error: "Language value is invalid." });
     }
 
     const apiKey = getApiKey(customApiKey);
@@ -45,7 +55,7 @@ Do not include any other markdown or text outside the JSON object.
 
 Code:
 \`\`\`${language.toLowerCase()}
-${code.slice(0, 10000)}
+${code.slice(0, 10_000)}
 \`\`\``;
 
     try {
@@ -60,18 +70,17 @@ ${code.slice(0, 10000)}
         throw new Error("Virtual runtime returned an invalid response object.");
       }
 
-      const stdout = typeof parsed.stdout === "string" ? parsed.stdout : "";
-      const stderr = typeof parsed.stderr === "string" ? parsed.stderr : "";
-      const exitCode = Number.isFinite(Number(parsed.exitCode))
-        ? Number(parsed.exitCode)
-        : 1;
+      const stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, MAX_OUTPUT_LENGTH) : "";
+      const stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, MAX_OUTPUT_LENGTH) : "";
+      const numericExitCode = Number(parsed.exitCode);
+      const exitCode = Number.isFinite(numericExitCode) ? Math.trunc(numericExitCode) : 1;
       const executionTime =
         typeof parsed.executionTime === "string" && parsed.executionTime.trim()
-          ? parsed.executionTime
+          ? parsed.executionTime.slice(0, MAX_EXECUTION_TIME_LENGTH)
           : "0.00s";
       const notes =
         typeof parsed.notes === "string" && parsed.notes.trim()
-          ? parsed.notes
+          ? parsed.notes.slice(0, MAX_NOTES_LENGTH)
           : `${language} virtual runtime (${modelUsed})`;
 
       return res.status(200).json({
@@ -97,7 +106,7 @@ ${code.slice(0, 10000)}
     console.error("Code runner API error:", error);
     return res.status(500).json({
       stdout: "",
-      stderr: `Runner Error: ${error?.message || "Execution failed"}`,
+      stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
       exitCode: 1,
       executionTime: "0.00s",
       notes: "Execution halted",
