@@ -39,7 +39,8 @@ jobs:
           const staticMatch = toolsSrc.match(/export const STATIC_TOOLS_METADATA = (\[[\s\S]*?\]);\n/);
           if (!staticMatch) throw new Error('STATIC_TOOLS_METADATA block not found');
           const staticSandbox = { module: { exports: {} } };
-          vm.runInNewContext(`module.exports = ${staticMatch[1]};`, staticSandbox);
+          const staticSource = staticMatch[1].replaceAll('as const', '');
+          vm.runInNewContext(`module.exports = ${staticSource};`, staticSandbox);
           const all = [...staticSandbox.module.exports, ...dynamic];
           const index = all.map(({id, title, category}) => ({id, title, category}));
           const seen = new Set();
