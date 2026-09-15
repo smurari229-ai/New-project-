@@ -1,0 +1,70 @@
+name: Temporary duplicate title fix
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor == 'smurari229-ai'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply targeted duplicate-title fixes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          replacements = {
+              'src/data/tools850/batch1_text.ts': {
+                  'id: 162,\n    title: "ROT13 Cipher"': 'id: 162,\n    title: "ROT13 Text Cipher"',
+              },
+              'src/data/tools850/batch3_math.ts': {
+                  'id: 355,\n    title: "Factorial Calculator (N!)"': 'id: 355,\n    title: "BigInt Factorial Calculator (N!)"',
+                  'id: 360,\n    title: "Fibonacci Sequence Generator"': 'id: 360,\n    title: "Fibonacci Terms Generator"',
+              },
+              'src/data/generatedToolMetadata.ts': {
+                  '"id": 162,\n    "title": "ROT13 Cipher"': '"id": 162,\n    "title": "ROT13 Text Cipher"',
+                  '"id": 355,\n    "title": "Factorial Calculator (N!)"': '"id": 355,\n    "title": "BigInt Factorial Calculator (N!)"',
+                  '"id": 360,\n    "title": "Fibonacci Sequence Generator"': '"id": 360,\n    "title": "Fibonacci Terms Generator"',
+              },
+              'src/data/toolMetadataIndex.ts': {
+                  '"id":162,"title":"ROT13 Cipher"': '"id":162,"title":"ROT13 Text Cipher"',
+                  '"id":355,"title":"Factorial Calculator (N!)"': '"id":355,"title":"BigInt Factorial Calculator (N!)"',
+                  '"id":360,"title":"Fibonacci Sequence Generator"': '"id":360,"title":"Fibonacci Terms Generator"',
+              },
+          }
+          for filename, pairs in replacements.items():
+              p = Path(filename)
+              s = p.read_text()
+              for old, new in pairs.items():
+                  if old not in s:
+                      raise SystemExit(f'Expected target not found in {filename}: {old}')
+                  s = s.replace(old, new, 1)
+              p.write_text(s)
+          PY
+      - name: Verify duplicate-title repair
+        run: |
+          npm run lint
+          npx tsx scripts/runtime-tool-smoke.ts
+          git diff --check
+      - name: Commit targeted fix and remove temporary files
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/tools850/batch1_text.ts src/data/tools850/batch3_math.ts src/data/generatedToolMetadata.ts src/data/toolMetadataIndex.ts
+          git rm .github/workflows/temporary-duplicate-title-fix.yml .audit-duplicate-title-fix-trigger
+          git commit -m "fix: remove duplicate dynamic tool titles"
+          git push
