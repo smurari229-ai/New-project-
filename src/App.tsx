@@ -26,29 +26,6 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-const TOOL_CATEGORY_COUNTS: Record<string, number> = {
-  All: 150,
-  Web: 12,
-  Text: 20,
-  Formatting: 9,
-  Converters: 11,
-  Security: 10,
-  Encryption: 0,
-  Hashes: 7,
-  Math: 21,
-  Time: 6,
-  Color: 4,
-  Generators: 6,
-  HTML: 4,
-  CSS: 17,
-  JavaScript: 12,
-  API: 3,
-  Data: 1,
-  DevOps: 2,
-  Utilities: 5,
-  Miscellaneous: 0,
-};
-
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     try {
@@ -222,8 +199,7 @@ export default function App() {
             </h1>
 
             <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed">
-              Instantly format, convert, test, encrypt, and debug code. Includes a live
-              in-browser execution sandbox for {LANGUAGE_CATALOG.length} programming languages, plus Gemini AI coding copilot.
+              Instantly format, convert, test, encrypt, and debug code. Includes an interactive multi-language editor with live browser execution for HTML/CSS/JavaScript and AI-assisted virtual execution for other catalog languages, plus Gemini AI coding copilot.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -267,8 +243,8 @@ export default function App() {
               <div className="text-xs text-blue-200">Gemini-Powered</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
-              <div className="text-xl sm:text-2xl font-black text-white">100%</div>
-              <div className="text-xs text-blue-200">Private & Secure</div>
+              <div className="text-xl sm:text-2xl font-black text-white">Browser-first</div>
+              <div className="text-xs text-blue-200">Security-focused</div>
             </div>
           </div>
         </section>
@@ -282,7 +258,7 @@ export default function App() {
               className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-500 transition flex items-center space-x-1.5"
             >
               <Wrench className="w-3.5 h-3.5 text-blue-500" />
-              <span>1,000 Tools Grid</span>
+              <span>{ALL_TOOLS_METADATA.length.toLocaleString()} Tools Grid</span>
             </button>
             <button
               type="button"
@@ -351,7 +327,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* 65+ Programming Languages Catalog Section */}
+        {/* Programming Languages Catalog Section */}
         <LanguageHub
           onSelectLanguage={handleSelectLanguageFromHub}
           onAskAI={handleAskAIFromHub}
@@ -364,7 +340,7 @@ export default function App() {
               <div className="flex items-center space-x-2">
                 <Wrench className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Developer Toolbox ({ALL_TOOLS_METADATA.length.toLocaleString()} Production Tools)
+                  Developer Toolbox ({ALL_TOOLS_METADATA.length.toLocaleString()} Tools)
                 </h2>
                 <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   {selectedCategory === "All" ? "All Categories" : selectedCategory}
@@ -431,7 +407,7 @@ export default function App() {
                     onClick={() => setSelectedCategory("All")}
                     className="px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-300 dark:border-slate-700 transition"
                   >
-                    View All Categories (1,000 tools)
+                    View All Categories ({ALL_TOOLS_METADATA.length.toLocaleString()} tools)
                   </button>
                 )}
               </div>
@@ -542,7 +518,7 @@ export default function App() {
               onClick={() => scrollToSection("all-tools-grid")}
               className="hover:text-blue-600 transition"
             >
-              1,000 Tools
+              {ALL_TOOLS_METADATA.length.toLocaleString()} Tools
             </button>
             <button
               type="button"
@@ -555,13 +531,13 @@ export default function App() {
               href="/api/download/codebase-pdf"
               download="CodingSuperHub_Complete_SourceCode.pdf"
               className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900 border border-emerald-300 dark:border-emerald-800 transition text-xs font-semibold"
-              title="Download 188-page Full Codebase PDF"
+              title="Download the current source code PDF"
             >
-              <span>📄 Download Codebase PDF (188 Pages)</span>
+              <span>📄 Download Codebase PDF</span>
             </a>
           </div>
           <p>
-            Coding Super Hub &bull; {ALL_TOOLS_METADATA.length.toLocaleString()} developer tools, real-time code sandbox & Gemini AI integration.
+            Coding Super Hub &bull; {ALL_TOOLS_METADATA.length.toLocaleString()} developer tools, interactive code sandbox & Gemini AI integration.
           </p>
         </footer>
       </main>
