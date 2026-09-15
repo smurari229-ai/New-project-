@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* Keep the document viewport stable on narrow screens while allowing
+   intentional horizontal scrollers (for example the category pills) to
+   handle their own overflow. */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
