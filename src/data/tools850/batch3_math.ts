@@ -95,7 +95,7 @@ export const BATCH_3_MATH_TOOLS: DynamicTool[] = [
   },
   {
     id: 355,
-    title: "Factorial Calculator (N!)",
+    title: "BigInt Factorial Calculator (N!)",
     category: "Math",
     description: "Calculates the exact factorial value using BigInt.",
     keywords: ["factorial", "n!", "combinatorics"],
@@ -200,7 +200,7 @@ export const BATCH_3_MATH_TOOLS: DynamicTool[] = [
   },
   {
     id: 360,
-    title: "Fibonacci Sequence Generator",
+    title: "Fibonacci Terms Generator",
     category: "Math",
     description: "Generates the first N terms of the Fibonacci sequence.",
     keywords: ["fibonacci", "sequence", "numbers"],

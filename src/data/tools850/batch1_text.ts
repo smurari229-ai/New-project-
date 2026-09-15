@@ -171,7 +171,7 @@ export const BATCH_1_TEXT_TOOLS: DynamicTool[] = [
   },
   {
     id: 162,
-    title: "ROT13 Cipher",
+    title: "ROT13 Text Cipher",
     category: "Text",
     description: "Rotates letters by 13 positions (symmetric cipher).",
     keywords: ["rot13", "caesar", "obfuscate", "spoilers"],

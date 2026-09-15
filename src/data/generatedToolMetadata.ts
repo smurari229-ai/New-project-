@@ -133,7 +133,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 162,
-    "title": "ROT13 Cipher",
+    "title": "ROT13 Text Cipher",
     "category": "Text",
     "description": "Rotates letters by 13 positions (symmetric cipher).",
     "keywords": [
@@ -2273,7 +2273,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 355,
-    "title": "Factorial Calculator (N!)",
+    "title": "BigInt Factorial Calculator (N!)",
     "category": "Math",
     "description": "Calculates the exact factorial value using BigInt.",
     "keywords": [
@@ -2328,7 +2328,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 360,
-    "title": "Fibonacci Sequence Generator",
+    "title": "Fibonacci Terms Generator",
     "category": "Math",
     "description": "Generates the first N terms of the Fibonacci sequence.",
     "keywords": [
