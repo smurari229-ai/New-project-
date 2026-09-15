@@ -5,6 +5,7 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 const indexSource = read("src/data/tools850/index.ts");
+const batch9Source = read("src/data/tools850/batch9_fixed.ts");
 const repairSource = read("src/data/tools850/placeholder_repairs.ts");
 const repaired956Source = read("src/data/tools850/batch9_repaired_956_1000.ts");
 const metadataSource = read("src/data/toolsMetadata.ts");
@@ -19,7 +20,6 @@ const requiredBatchImports = [
   "./batch7_design_audio",
   "./batch8_system_devops",
   "./batch9_fixed",
-  "./batch9_repaired_956_1000",
 ];
 for (const marker of requiredBatchImports) {
   if (!indexSource.includes(`from \"${marker}\"`)) {
@@ -27,8 +27,11 @@ for (const marker of requiredBatchImports) {
   }
 }
 
-if (!indexSource.includes("...BATCH_9_REPAIRED_956_1000")) {
-  throw new Error("Concrete 956-1000 registry is not connected to ALL_850_TOOLS.");
+if (!batch9Source.includes("BATCH_9_REPAIRED_956_1000")) {
+  throw new Error("Concrete 956-1000 registry is not connected through batch9_fixed.");
+}
+if (indexSource.includes("...BATCH_9_REPAIRED_956_1000")) {
+  throw new Error("Duplicate 956-1000 registry spread detected in tools850/index.ts.");
 }
 if (!indexSource.includes("const expectedDynamicCount = 850")) {
   throw new Error("Tool 1000 registry verifier is missing the 850-tool dynamic count gate.");
