@@ -37,7 +37,7 @@ jobs:
           }));
           writeFileSync(
             'src/data/generatedToolMetadata.ts',
-            `export const DYNAMIC_TOOL_METADATA = ${JSON.stringify(metadata, null, 2)};\n`,
+            `import type { ToolMetadata } from "../types";\n\nexport const DYNAMIC_TOOL_METADATA: ToolMetadata[] = ${JSON.stringify(metadata, null, 2)};\n`,
           );
           TS
 
