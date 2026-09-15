@@ -186,7 +186,7 @@ export const BATCH_8_SYSTEM_DEVOPS_TOOLS: DynamicTool[] = [
       inputType: "text" as const,
       default1: "default_param",
       run: (v: string) => {
-        return `# [${name}]\n# Automated cloud & system blueprint\n# Parameters: "${v}"\necho "Execution successful in production environment."`;
+        return `# [${name}]\n# Automated cloud & system blueprint\n# Parameters: "${v}"\necho "Generated command/blueprint only; not executed in this tool."`;
       },
     };
   }),
