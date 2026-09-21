@@ -25,7 +25,7 @@ Last deep-audit verification: 2026-09-15
 - Vercel AI ask endpoint hardened with prompt/language/history/output limits.
 - Security-sensitive dynamic tool semantics and randomness were hardened in the preceding audit cycle.
 - Dynamic registry quality and integrity checks remain connected to the live 151–1000 registry.
-- README claims/setup instructions were corrected surgically: 1,000 tools are described as interactive rather than individually full-featured, AI-assisted execution is distinguished from native compilation, security-heavy demo/template behavior is disclosed, the clone directory was corrected, and the Vercel `vercel.json` claim was removed because the current setup does not require that file.
+- README claims/setup instructions were corrected surgically: 1,000 tools are described as interactive rather than individually full-featured, AI-assisted execution is distinguished from native compilation, security-heavy demo/template behavior is disclosed, the clone directory was corrected, and the Vercel setup documentation was aligned with the current `vercel.json`, which now carries response-security headers.
 - No wholesale project replacement was performed.
 
 ## Remaining product-quality work
