@@ -43,7 +43,7 @@ if (!dynamicUnique.has(956) || !dynamicUnique.has(1000)) {
 const tool1000 = ALL_850_TOOLS.find((tool) => tool.id === 1000);
 if (!tool1000) throw new Error("Tool 1000 is missing from the live registry.");
 const verifierOutput = tool1000.run("", "");
-if (!verifierOutput.includes("Registry result: PASS")) {
+if (!verifierOutput.includes("Integrity: PASS")) {
   throw new Error(`Tool 1000 registry self-check failed:\n${verifierOutput}`);
 }
 
