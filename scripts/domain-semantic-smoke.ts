@@ -37,7 +37,7 @@ console.log("Domain semantic smoke passed: SHA-256, CRC-32, HMAC-SHA256, PKCE fo
 
 const sourceMetadata = await import("../src/data/generatedToolMetadata");
 const stale = sourceMetadata.DYNAMIC_TOOL_METADATA.filter((tool) =>
-  tool.id === 475 || tool.id === 481 || tool.id === 483
+  tool.id === 475 || tool.id === 481 || tool.id === 483 || tool.id === 487 || tool.id === 497 || tool.id === 517 || tool.id === 518
 );
 const expectedLabels = new Map([
   [475, "MD5 Hash Demo (Non-cryptographic)"],
