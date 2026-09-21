@@ -33,6 +33,9 @@ jobs:
       - name: API contract smoke check
         run: node scripts/api-contract-smoke.mjs
 
+      - name: API runtime contract smoke check
+        run: node scripts/api-runtime-contract-smoke.mjs
+
       - name: 956-1000 repair smoke check
         run: node scripts/repair-smoke-tests.mjs
 
