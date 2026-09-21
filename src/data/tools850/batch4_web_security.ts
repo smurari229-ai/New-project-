@@ -667,7 +667,7 @@ export const BATCH_4_WEB_SECURITY_TOOLS: DynamicTool[] = [
   },
   {
     id: 487,
-    title: "Subresource Integrity (SRI) Hash Generator",
+    title: "SRI HTML Template Generator",
     category: "Security",
     description: "Generates integrity=\"sha384-...\" attribute for external script CDN tags.",
     keywords: ["sri", "subresource integrity", "cdn security"],
@@ -819,7 +819,7 @@ export const BATCH_4_WEB_SECURITY_TOOLS: DynamicTool[] = [
   },
   {
     id: 497,
-    title: "Webhook Payload Signature Verifier (HMAC-SHA256)",
+    title: "Webhook HMAC-SHA256 Signature Generator",
     category: "Security",
     description: "Provides an HMAC-SHA256 webhook signature helper at runtime; no external provider verification is performed.",
     keywords: ["webhook signature", "stripe webhook", "github hmac"],
