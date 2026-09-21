@@ -31,7 +31,7 @@ if (!verifier || !challenge || !/^[A-Za-z0-9_-]{43}$/.test(verifier) || !/^[A-Za
 console.log("Domain semantic smoke passed: SHA-256, CRC-32, HMAC-SHA256, PKCE format.");
 
 const sourceMetadata = await import("../src/data/generatedToolMetadata");
-const stale = sourceMetadata.GENERATED_TOOL_METADATA.filter((tool) =>
+const stale = sourceMetadata.DYNAMIC_TOOL_METADATA.filter((tool) =>
   tool.id === 475 || tool.id === 481 || tool.id === 483
 );
 const expectedLabels = new Map([
