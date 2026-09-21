@@ -36,6 +36,9 @@ jobs:
       - name: API runtime contract smoke check
         run: node scripts/api-runtime-contract-smoke.mjs
 
+      - name: Domain semantic known-vector smoke check
+        run: npx tsx scripts/domain-semantic-smoke.ts
+
       - name: 956-1000 repair smoke check
         run: node scripts/repair-smoke-tests.mjs
 
