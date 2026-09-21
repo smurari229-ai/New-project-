@@ -1,11 +1,51 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
 
+const MAX_CODE_LENGTH = 10_000;
+const MAX_LANGUAGE_LENGTH = 100;
 const MAX_OUTPUT_LENGTH = 40_000;
 const MAX_NOTES_LENGTH = 2_000;
 const MAX_EXECUTION_TIME_LENGTH = 100;
 
+function parseRuntimeResponse(raw) {
+  const text = String(raw || "{}").trim();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)?.[1];
+    if (fenced) return JSON.parse(fenced);
+    const objectStart = text.indexOf("{");
+    const objectEnd = text.lastIndexOf("}");
+    if (objectStart >= 0 && objectEnd > objectStart) {
+      return JSON.parse(text.slice(objectStart, objectEnd + 1));
+    }
+    throw new Error("Virtual runtime returned invalid JSON.");
+  }
+}
+
+function responsePayload(language, parsed, modelUsed) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Virtual runtime returned an invalid response object.");
+  }
+
+  const numericExitCode = Number(parsed.exitCode);
+  return {
+    stdout: typeof parsed.stdout === "string" ? parsed.stdout.slice(0, MAX_OUTPUT_LENGTH) : "",
+    stderr: typeof parsed.stderr === "string" ? parsed.stderr.slice(0, MAX_OUTPUT_LENGTH) : "",
+    exitCode: Number.isFinite(numericExitCode) ? Math.trunc(numericExitCode) : 1,
+    executionTime:
+      typeof parsed.executionTime === "string" && parsed.executionTime.trim()
+        ? parsed.executionTime.slice(0, MAX_EXECUTION_TIME_LENGTH)
+        : "0.00s",
+    notes:
+      typeof parsed.notes === "string" && parsed.notes.trim()
+        ? parsed.notes.slice(0, MAX_NOTES_LENGTH)
+        : `${language} virtual runtime (${modelUsed})`,
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -20,10 +60,10 @@ export default async function handler(req, res) {
     if (!code || typeof code !== "string" || !code.trim()) {
       return res.status(400).json({ error: "Code is required to run." });
     }
-    if (code.length > 10_000) {
+    if (code.length > MAX_CODE_LENGTH) {
       return res.status(400).json({ error: "Code exceeds the 10,000 character limit." });
     }
-    if (typeof language !== "string" || language.length > 100) {
+    if (typeof language !== "string" || !language.trim() || language.length > MAX_LANGUAGE_LENGTH) {
       return res.status(400).json({ error: "Language value is invalid." });
     }
 
@@ -34,12 +74,14 @@ export default async function handler(req, res) {
         stderr: "Notice: Please configure GEMINI_API_KEY or enter your custom key in the AI Copilot panel to run non-browser languages.",
         exitCode: 1,
         executionTime: "0.00s",
+        notes: "Configuration required",
       });
     }
 
     const ai = createGemini(apiKey);
+    const normalizedLanguage = language.trim();
     const prompt = `You are a high-precision multi-language virtual compiler and execution runtime engine.
-Simulate executing or compiling the following ${language} code.
+Simulate executing or compiling the following ${normalizedLanguage} code.
 Accurately compute standard output (stdout), runtime warnings, standard error (stderr), and process return code.
 
 Return ONLY a single valid JSON object with this exact schema:
@@ -54,8 +96,8 @@ Return ONLY a single valid JSON object with this exact schema:
 Do not include any other markdown or text outside the JSON object.
 
 Code:
-\`\`\`${language.toLowerCase()}
-${code.slice(0, 10_000)}
+\`\`\`${normalizedLanguage.toLowerCase()}
+${code.trim()}
 \`\`\``;
 
     try {
@@ -64,32 +106,7 @@ ${code.slice(0, 10_000)}
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { responseMimeType: "application/json" },
       });
-
-      const parsed = JSON.parse(response.text || "{}");
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new Error("Virtual runtime returned an invalid response object.");
-      }
-
-      const stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, MAX_OUTPUT_LENGTH) : "";
-      const stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, MAX_OUTPUT_LENGTH) : "";
-      const numericExitCode = Number(parsed.exitCode);
-      const exitCode = Number.isFinite(numericExitCode) ? Math.trunc(numericExitCode) : 1;
-      const executionTime =
-        typeof parsed.executionTime === "string" && parsed.executionTime.trim()
-          ? parsed.executionTime.slice(0, MAX_EXECUTION_TIME_LENGTH)
-          : "0.00s";
-      const notes =
-        typeof parsed.notes === "string" && parsed.notes.trim()
-          ? parsed.notes.slice(0, MAX_NOTES_LENGTH)
-          : `${language} virtual runtime (${modelUsed})`;
-
-      return res.status(200).json({
-        stdout,
-        stderr,
-        exitCode,
-        executionTime,
-        notes,
-      });
+      return res.status(200).json(responsePayload(normalizedLanguage, parseRuntimeResponse(response.text), modelUsed));
     } catch (error) {
       if (isTransientError(error)) {
         return res.status(200).json({
