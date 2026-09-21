@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { ALL_850_TOOLS } from "../src/data/tools850/index";
 
 const byId = (id) => {
@@ -27,6 +28,10 @@ const challenge = pkce.match(/code_challenge:\n([^\n]+)/)?.[1];
 if (!verifier || !challenge || !/^[A-Za-z0-9_-]{43}$/.test(verifier) || !/^[A-Za-z0-9_-]{43}$/.test(challenge)) {
   throw new Error("Tool 518 PKCE format check failed.");
 }
+const expectedChallenge = createHash("sha256").update(verifier, "utf8").digest("base64url");
+if (challenge !== expectedChallenge) {
+  throw new Error("Tool 518 PKCE S256 challenge does not match the generated verifier.");
+}
 
 console.log("Domain semantic smoke passed: SHA-256, CRC-32, HMAC-SHA256, PKCE format.");
 
@@ -38,7 +43,12 @@ const expectedLabels = new Map([
   [475, "MD5 Hash Demo (Non-cryptographic)"],
   [481, "TOTP Code Simulator (Non-cryptographic)"],
   [483, "UUID v5 Namespace Name Template"],
+  [487, "SRI HTML Template Generator"],
+  [497, "Webhook HMAC-SHA256 Signature Generator"],
+  [517, "JWK Structure Template"],
+  [518, "OAuth 2.0 PKCE Code Verifier & Challenge Generator"],
 ]);
 for (const tool of stale) {
   if (expectedLabels.get(tool.id) !== tool.title) throw new Error(`Stale security metadata title for tool ${tool.id}: ${tool.title}`);
 }
+if (stale.length !== expectedLabels.size) throw new Error("Expected all audited security metadata entries to be present.");
