@@ -3753,7 +3753,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 487,
-    "title": "Subresource Integrity (SRI) Hash Generator",
+    "title": "SRI HTML Template Generator",
     "category": "Security",
     "description": "Generates integrity=\"sha384-...\" attribute for external script CDN tags.",
     "keywords": [
@@ -3867,9 +3867,9 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 497,
-    "title": "Webhook Payload Signature Verifier (HMAC-SHA256)",
+    "title": "Webhook HMAC-SHA256 Signature Generator",
     "category": "Security",
-    "description": "Simulates GitHub or Stripe webhook HMAC hex signature verification.",
+    "description": "Computes an HMAC-SHA256 hex signature for a raw webhook body and secret.",
     "keywords": [
       "webhook signature",
       "stripe webhook",
