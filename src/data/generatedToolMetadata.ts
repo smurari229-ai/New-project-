@@ -9726,7 +9726,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 975,
-    "title": "Core Web Vitals (LCP, FID, CLS) Threshold Guide",
+    "title": "Core Web Vitals (LCP, INP, CLS) Threshold Guide",
     "category": "Code",
     "description": "Shows practical Core Web Vitals thresholds.",
     "keywords": [
