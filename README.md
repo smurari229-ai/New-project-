@@ -111,7 +111,7 @@ To run both the **Frontend and the Node.js / Gemini AI backend**:
 ### Option C: 1-Click Deploy on Vercel
 1. Go to [vercel.com](https://vercel.com) and click **Add New...** > **Project**.
 2. Select your GitHub repository.
-3. Vercel can detect the Vite application from the repository configuration; no `vercel.json` file is required for the current setup.
+3. Vercel can detect the Vite application from the repository configuration. The repository also includes `vercel.json` to apply production response-security headers.
 4. Click **Deploy**.
 
 ---
