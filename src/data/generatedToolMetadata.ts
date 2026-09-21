@@ -3618,9 +3618,9 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 475,
-    "title": "MD5 Hash Simulator",
+    "title": "MD5 Hash Demo (Non-cryptographic)",
     "category": "Security",
-    "description": "Computes 128-bit MD5 hex hash checksum for legacy identification.",
+    "description": "Demonstrates the MD5 concept without claiming a standards-compliant MD5 digest. MD5 is obsolete for security use.",
     "keywords": [
       "md5",
       "checksum",
@@ -3686,9 +3686,9 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 481,
-    "title": "TOTP / 2FA Code Simulator (RFC 6238)",
+    "title": "TOTP Code Simulator (Non-cryptographic)",
     "category": "Security",
-    "description": "Simulates time-based one-time password code generation for 2FA.",
+    "description": "Shows a clearly labeled demo code and time window; not a standards-compliant RFC 6238 implementation.",
     "keywords": [
       "totp",
       "2fa",
@@ -3709,9 +3709,9 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 483,
-    "title": "UUID v5 / Namespace Name Formatter",
+    "title": "UUID v5 Namespace Name Template",
     "category": "Security",
-    "description": "Simulates deterministic UUID generated from namespace and name.",
+    "description": "Explains UUID v5 inputs without pretending to calculate SHA-1 in the browser tool runner.",
     "keywords": [
       "uuid v5",
       "deterministic uuid",
