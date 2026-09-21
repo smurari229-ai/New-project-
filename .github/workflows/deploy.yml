@@ -2,7 +2,7 @@ name: Build Check
 
 on:
   push:
-    branches: ["main", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
+    branches: ["main", "deep-audit-hardening-2026-09-21", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,9 @@ jobs:
 
       - name: Tool source integrity
         run: node scripts/verify-tools.mjs
+
+      - name: API contract smoke check
+        run: node scripts/api-contract-smoke.mjs
 
       - name: 956-1000 repair smoke check
         run: node scripts/repair-smoke-tests.mjs
