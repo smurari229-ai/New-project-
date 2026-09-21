@@ -4092,9 +4092,9 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
   },
   {
     "id": 517,
-    "title": "JSON Web Key (JWK) Simulator",
+    "title": "JWK Structure Template",
     "category": "Security",
-    "description": "Generates simulated RSA 2048-bit JWK public key structure.",
+    "description": "Generates a clearly labeled RSA JWK structure template; it does not generate real RSA key material.",
     "keywords": [
       "jwk",
       "json web key",
@@ -4106,7 +4106,7 @@ export const DYNAMIC_TOOL_METADATA: ToolMetadata[] = [
     "id": 518,
     "title": "OAuth 2.0 PKCE Code Verifier & Challenge Generator",
     "category": "Security",
-    "description": "Generates PKCE code_verifier string and SHA-256 code_challenge for SPA logins.",
+    "description": "Generates a random PKCE verifier and computes its S256 challenge with SHA-256.",
     "keywords": [
       "pkce",
       "code verifier",
