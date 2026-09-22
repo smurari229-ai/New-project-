@@ -159,8 +159,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       ) {
         return;
       }
-      if (e.data && e.data.type === "csh_sandbox_console") {
-        const item: ConsoleLogItem = {
+      const item: ConsoleLogItem = {
           id: Math.random().toString(36).substring(2, 9),
           type: e.data.level === "error" ? "error" : e.data.level === "warn" ? "warn" : "info",
           text: e.data.text || "",
