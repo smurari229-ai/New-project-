@@ -20,6 +20,7 @@ test("main UI, tools, editor, and AI error recovery surface", async ({ page }) =
 
   await page.locator("#all-tools-grid").scrollIntoViewIfNeeded();
   await expect(page.locator("#all-tools-grid")).toBeVisible();
+  await expect(page.locator("#all-tools-grid [aria-busy=\"false\"]")).toBeVisible({ timeout: 20_000 });
   const runTool = page.getByRole("button", { name: "Run Tool" }).first();
   await expect(runTool).toBeVisible();
   await runTool.click();
