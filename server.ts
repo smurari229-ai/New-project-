@@ -248,12 +248,16 @@ Your goal:
     } catch (error: any) {
       console.error("Gemini API error:", error);
       const isHighDemand = isTransientError(error);
-      const userMessage = isHighDemand
-        ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
-        : (error?.message || "Failed to process AI request");
-      return res.status(isHighDemand ? 503 : 500).json({
+      const isQuota = isQuotaError(error);
+      const userMessage = isQuota
+        ? "Gemini usage quota/rate limit has been reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key."
+        : isHighDemand
+          ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
+          : (error?.message || "Failed to process AI request");
+      return res.status(isQuota ? 429 : isHighDemand ? 503 : 500).json({
         error: userMessage,
         isHighDemand,
+        isQuota,
       });
     }
   });
