@@ -1,4 +1,4 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
 
 const MAX_OUTPUT_LENGTH = 40_000;
 const MAX_NOTES_LENGTH = 2_000;
@@ -62,7 +62,7 @@ ${code.slice(0, 10_000)}
       const { response, modelUsed } = await generateWithFallback(ai, {
         preferredModel: "gemini-3.8-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: { responseMimeType: "application/json" },
+        config: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
       });
 
       const parsed = JSON.parse(response.text || "{}");
@@ -91,8 +91,17 @@ ${code.slice(0, 10_000)}
         notes,
       });
     } catch (error) {
+      if (isQuotaError(error)) {
+        return res.status(429).json({
+          stdout: "",
+          stderr: "⚠️ Gemini usage quota/rate limit reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key.",
+          exitCode: 1,
+          executionTime: "0.00s",
+          notes: "Gemini quota/rate limit",
+        });
+      }
       if (isTransientError(error)) {
-        return res.status(200).json({
+        return res.status(503).json({
           stdout: "",
           stderr: "⚠️ Notice: The virtual execution engine is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
           exitCode: 1,
