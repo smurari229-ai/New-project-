@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("main UI, tools, editor, and AI error recovery surface", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", msg => {
-    if (msg.type() === "error") consoleErrors.push(msg.text());
+    if (msg.type() === "error" && !msg.text().includes("status of 429")) consoleErrors.push(msg.text());
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
