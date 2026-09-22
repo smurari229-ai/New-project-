@@ -20,6 +20,8 @@ test("main UI, tools, editor, and AI error recovery surface", async ({ page }) =
 
   await page.locator("#all-tools-grid").scrollIntoViewIfNeeded();
   await expect(page.locator("#all-tools-grid")).toBeVisible();
+  const registryPlaceholder = page.getByText("Preparing the 850-tool registry…");
+  if (await registryPlaceholder.isVisible().catch(() => false)) await registryPlaceholder.scrollIntoViewIfNeeded();
   const runTool = page.getByRole("button", { name: "Run Tool" }).first();
   await expect(runTool).toBeVisible({ timeout: 20_000 });
   await runTool.click();
