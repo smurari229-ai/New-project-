@@ -14,6 +14,7 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 120_000,
   },
+  use: { baseURL: "http://127.0.0.1:3000" },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["Pixel 5"] } },
