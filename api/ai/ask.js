@@ -1,4 +1,4 @@
-import { createGemini, generateWithFallback, getApiKey, isTransientError, checkRateLimit } from "../_lib/gemini.js";
+import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
 
 const MAX_PROMPT_LENGTH = 20_000;
 const MAX_LANGUAGE_LENGTH = 100;
@@ -85,11 +85,15 @@ Your goal:
   } catch (error) {
     console.error("Gemini API error:", error);
     const isHighDemand = isTransientError(error);
-    return res.status(isHighDemand ? 503 : 500).json({
-      error: isHighDemand
-        ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
-        : error?.message || "Failed to process AI request",
+    const isQuota = isQuotaError(error);
+    return res.status(isQuota ? 429 : isHighDemand ? 503 : 500).json({
+      error: isQuota
+        ? "Gemini usage quota/rate limit has been reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key."
+        : isHighDemand
+          ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
+          : error?.message || "Failed to process AI request",
       isHighDemand,
+      isQuota,
     });
   }
 }
