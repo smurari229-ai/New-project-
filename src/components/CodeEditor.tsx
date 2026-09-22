@@ -75,6 +75,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const previewFrameRef = useRef<HTMLIFrameElement>(null);
 
   const isWebLanguage = (lang: string) => {
     const l = lang.toLowerCase().trim();
@@ -151,6 +152,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   // Listen to sandbox postMessages for console output
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (
+        e.source !== previewFrameRef.current?.contentWindow ||
+        !e.data ||
+        e.data.type !== "csh_sandbox_console"
+      ) {
+        return;
+      }
       if (e.data && e.data.type === "csh_sandbox_console") {
         const item: ConsoleLogItem = {
           id: Math.random().toString(36).substring(2, 9),
@@ -960,6 +968,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white shadow-inner">
             <iframe
               id="liveOutput"
+              ref={previewFrameRef}
               title="Live Output Preview"
               srcDoc={srcDoc}
               sandbox="allow-scripts allow-modals"
