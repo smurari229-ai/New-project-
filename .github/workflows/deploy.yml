@@ -3,6 +3,8 @@ name: Build Check
 on:
   push:
     branches: ["main", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
