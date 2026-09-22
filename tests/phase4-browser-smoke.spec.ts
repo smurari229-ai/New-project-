@@ -16,7 +16,7 @@ test("main UI, tools, editor, and AI error recovery surface", async ({ page }) =
   await page.locator("#search-all-tools-input").fill("");
 
   await page.getByRole("button", { name: /^Security\s+\d+/ }).click();
-  await page.getByRole("button", { name: /^All\s+1,000/ }).click();
+  await page.getByRole("button", { name: /^All\s+1000/ }).click();
 
   const runTool = page.getByRole("button", { name: "Run Tool" }).first();
   await expect(runTool).toBeVisible();
