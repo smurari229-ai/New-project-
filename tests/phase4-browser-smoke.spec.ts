@@ -35,7 +35,7 @@ test("main UI, tools, editor, and AI error recovery surface", async ({ page }) =
     });
   });
   await page.getByRole("button", { name: "Ask AI" }).last().click();
-  await expect(page.getByText(/Gemini usage quota\/rate limit has been reached/i)).toBeVisible();
+  await expect(page.getByText(/Gemini usage quota\/rate limit has been reached/i).last()).toBeVisible();
 
   await expect(page.locator("body")).toHaveJSProperty("scrollWidth", await page.evaluate(() => document.documentElement.clientWidth));
   expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
