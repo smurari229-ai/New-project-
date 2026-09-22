@@ -160,13 +160,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         return;
       }
       const item: ConsoleLogItem = {
-          id: Math.random().toString(36).substring(2, 9),
-          type: e.data.level === "error" ? "error" : e.data.level === "warn" ? "warn" : "info",
-          text: e.data.text || "",
-          time: e.data.time || new Date().toLocaleTimeString(),
-        };
-        setTerminalLogs((prev) => [...prev.slice(-99), item]);
-      }
+        id: Math.random().toString(36).substring(2, 9),
+        type: e.data.level === "error" ? "error" : e.data.level === "warn" ? "warn" : "info",
+        text: e.data.text || "",
+        time: e.data.time || new Date().toLocaleTimeString(),
+      };
+      setTerminalLogs((prev) => [...prev.slice(-99), item]);
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
