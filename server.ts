@@ -20,7 +20,7 @@ const CANDIDATE_MODELS = [
   "gemini-3.1-flash-lite",
 ];
 
-function isTransientError(error: any): boolean {
+function getGeminiErrorInfo(error: any) {
   const status =
     error?.status ||
     error?.code ||
@@ -30,18 +30,30 @@ function isTransientError(error: any): boolean {
   const msg = String(
     error?.message || error?.error?.message || error || ""
   ).toLowerCase();
+  return { status, msg };
+}
 
+function isQuotaError(error: any): boolean {
+  const { status, msg } = getGeminiErrorInfo(error);
+  return (
+    status === 429 ||
+    status === "RESOURCE_EXHAUSTED" ||
+    msg.includes("429") ||
+    msg.includes("resource has been exhausted") ||
+    msg.includes("quota exceeded") ||
+    msg.includes("rate limit")
+  );
+}
+
+function isTransientError(error: any): boolean {
+  const { status, msg } = getGeminiErrorInfo(error);
   return (
     status === 503 ||
-    status === 429 ||
     status === "UNAVAILABLE" ||
-    status === "RESOURCE_EXHAUSTED" ||
     msg.includes("503") ||
-    msg.includes("429") ||
     msg.includes("high demand") ||
     msg.includes("unavailable") ||
     msg.includes("overloaded") ||
-    msg.includes("resource has been exhausted") ||
     msg.includes("spikes in demand are usually temporary") ||
     msg.includes("try again later")
   );
@@ -119,6 +131,11 @@ async function generateWithFallback(
           `[Gemini API] Attempt ${attempt} on model "${model}" failed: ${err?.message || err}`
         );
 
+        if (isQuotaError(err)) {
+          // A quota/rate-limit error will not be fixed by retrying across
+          // models; doing so can multiply project-level quota consumption.
+          throw err;
+        }
         if (isTransientError(err)) {
           // Exponential backoff with jitter before retry or next model
           const delayMs = attempt === 1 ? 600 + Math.random() * 400 : 1200;
@@ -305,7 +322,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         const { response, modelUsed } = await generateWithFallback(ai, {
           preferredModel: "gemini-3.8-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: { responseMimeType: "application/json" },
+          config: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
         });
 
         const raw = response.text || "{}";
@@ -319,8 +336,17 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         parsed.executionTime = typeof parsed.executionTime === "string" && parsed.executionTime.trim() ? parsed.executionTime.slice(0, 100) : "0.00s";
         parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} virtual runtime (${modelUsed})`;
       } catch (geminiErr: any) {
+        if (isQuotaError(geminiErr)) {
+          return res.status(429).json({
+            stdout: "",
+            stderr: "⚠️ Gemini usage quota/rate limit reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key.",
+            exitCode: 1,
+            executionTime: "0.00s",
+            notes: "Gemini quota/rate limit",
+          });
+        }
         if (isTransientError(geminiErr)) {
-          return res.status(200).json({
+          return res.status(503).json({
             stdout: "",
             stderr: "⚠️ Notice: The virtual execution engine is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
             exitCode: 1,
