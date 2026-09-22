@@ -163,10 +163,10 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
       };
     }
 
-    const timeoutId = window.setTimeout(runInitial, 0);
+    const timeoutId = setTimeout(runInitial, 0);
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
     };
   }, [tool, initialValue1]);
 
