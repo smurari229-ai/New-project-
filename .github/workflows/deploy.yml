@@ -38,6 +38,9 @@ jobs:
       - name: Dynamic tool quality regression check
         run: npx tsx scripts/quality-tool-smoke.ts
 
+      - name: Specialized semantic regression check
+        run: npx tsx scripts/specialized-semantic-smoke.ts
+
       - name: 1-1000 runtime smoke check
         run: npx tsx scripts/runtime-tool-smoke.ts
 
