@@ -149,21 +149,34 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     });
   }, [currentLang, onLanguageChange, registerApplyCodeHandler]);
 
-  // Listen to sandbox postMessages for console output
+  // The sandbox intentionally omits allow-same-origin, so srcDoc has an opaque origin.
+  // That makes a fixed targetOrigin unreliable; security therefore relies on the
+  // expected iframe Window identity plus a strict message type/payload allowlist.
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (e.source !== previewFrameRef.current?.contentWindow) return;
+
+      const data = e.data;
+      if (!data || typeof data !== "object" || Array.isArray(data)) return;
+
+      const allowedKeys = new Set(["type", "level", "text", "time"]);
+      const keys = Object.keys(data);
       if (
-        e.source !== previewFrameRef.current?.contentWindow ||
-        !e.data ||
-        e.data.type !== "csh_sandbox_console"
+        keys.some((key) => !allowedKeys.has(key)) ||
+        data.type !== "csh_sandbox_console" ||
+        (data.level !== "info" && data.level !== "warn" && data.level !== "error") ||
+        typeof data.text !== "string" ||
+        data.text.length > 4_000 ||
+        (data.time !== undefined && (typeof data.time !== "string" || data.time.length > 100))
       ) {
         return;
       }
+
       const item: ConsoleLogItem = {
         id: Math.random().toString(36).substring(2, 9),
-        type: e.data.level === "error" ? "error" : e.data.level === "warn" ? "warn" : "info",
-        text: e.data.text || "",
-        time: e.data.time || new Date().toLocaleTimeString(),
+        type: data.level,
+        text: data.text,
+        time: data.time || new Date().toLocaleTimeString(),
       };
       setTerminalLogs((prev) => [...prev.slice(-99), item]);
     };
@@ -234,7 +247,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               function send(level, args) {
                 try {
                   var str = Array.from(args).map(formatArg).join(' ');
-                  window.parent.postMessage({ type: 'csh_sandbox_console', level: level, text: str, time: new Date().toLocaleTimeString() }, '*');
+                  // srcDoc is sandboxed without allow-same-origin, so its origin is opaque.
+                  // A stable targetOrigin is unavailable; the parent strictly validates
+                  // the expected iframe Window and the message schema before consuming it.
+                  window.parent.postMessage({ type: 'csh_sandbox_console', level: level, text: str.slice(0, 4000), time: new Date().toLocaleTimeString() }, '*');
                 } catch(e) {}
               }
               console.log = function() { send('info', arguments); _log.apply(console, arguments); };
