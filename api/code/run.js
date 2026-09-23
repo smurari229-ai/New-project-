@@ -4,7 +4,6 @@ const MAX_OUTPUT_LENGTH = 40_000;
 const SUPPORTED_SIMULATED_LANGUAGES = new Set([
   "JavaScript",
   "TypeScript",
-  "Alex",
   "Python",
   "HTML",
   "CSS",
@@ -141,7 +140,7 @@ ${code.slice(0, 10_000)}
       const notes =
         typeof parsed.notes === "string" && parsed.notes.trim()
           ? parsed.notes.slice(0, MAX_NOTES_LENGTH)
-          : `${language} virtual runtime (${modelUsed})`;
+          : `${language} simulation (${modelUsed}); AI-estimated output, not native execution`;
 
       return res.status(200).json({
         stdout,
