@@ -9,7 +9,7 @@ export default defineConfig({
   retries: 1,
   reporter: "line",
   webServer: {
-    command: "npm run dev",
+    command: "PLAYWRIGHT_TEST=1 npm run dev",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: false,
     timeout: 120_000,

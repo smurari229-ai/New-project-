@@ -394,7 +394,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
   // Vite middleware setup
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: process.env.PLAYWRIGHT_TEST ? false : undefined },
       appType: "spa",
     });
     app.use(vite.middlewares);
