@@ -3,7 +3,14 @@ import { test, expect } from "@playwright/test";
 test("main UI, tools, editor, and AI error recovery surface", async ({ page }) => {
   const consoleErrors: string[] = [];
   page.on("console", msg => {
-    if (msg.type() === "error" && !msg.text().includes("status of 429")) consoleErrors.push(msg.text());
+    const text = msg.text();
+    const expectedViteDevNoise =
+      text.includes("127.0.0.1:24678") &&
+      (text.includes("Content Security Policy") || text.includes("WebSocket connection"));
+    const viteFallbackNoise = text.includes("[vite] failed to connect to websocket");
+    if (msg.type() === "error" && !text.includes("status of 429") && !expectedViteDevNoise && !viteFallbackNoise) {
+      consoleErrors.push(text);
+    }
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
