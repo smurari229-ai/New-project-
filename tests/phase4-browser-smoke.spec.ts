@@ -55,3 +55,27 @@ test("code editor sandbox renders and remains bounded", async ({ page }) => {
   const frame = page.frameLocator("#liveOutput");
   await expect(frame.locator("body")).toBeVisible();
 });
+
+
+test("code editor rejects unauthorized and malformed sandbox messages", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#code-editor-section")).toBeVisible();
+  await expect(page.getByTitle("Live Output Preview")).toBeVisible();
+
+  const marker = "__UNAUTHORIZED_SANDBOX_MESSAGE_SHOULD_NOT_RENDER__";
+  await page.evaluate((text) => {
+    window.postMessage(
+      {
+        type: "csh_sandbox_console",
+        level: "info",
+        text,
+        time: new Date().toLocaleTimeString(),
+        unexpectedProperty: "reject-me",
+      },
+      "*",
+    );
+  }, marker);
+
+  await page.waitForTimeout(300);
+  await expect(page.getByText(marker)).toHaveCount(0);
+});
