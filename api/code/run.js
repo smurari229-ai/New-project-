@@ -1,6 +1,58 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
 
 const MAX_OUTPUT_LENGTH = 40_000;
+const SUPPORTED_SIMULATED_LANGUAGES = new Set([
+  "JavaScript",
+  "TypeScript",
+  "Alex",
+  "Python",
+  "HTML",
+  "CSS",
+  "Rust",
+  "Go",
+  "C++",
+  "C",
+  "C#",
+  "Java",
+  "Kotlin",
+  "Swift",
+  "Dart",
+  "PHP",
+  "Ruby",
+  "R",
+  "SQL",
+  "Bash",
+  "PowerShell",
+  "Lua",
+  "Julia",
+  "Solidity",
+  "Zig",
+  "GraphQL",
+  "JSON",
+  "YAML",
+  "Markdown",
+  "Dockerfile",
+  "Elixir",
+  "Haskell",
+  "Scala",
+  "Perl",
+  "Assembly",
+  "WebAssembly",
+  "Vyper",
+  "GDScript",
+  "Verilog",
+  "VHDL",
+  "Nim",
+  "Fortran",
+  "COBOL",
+  "Objective-C",
+  "F#",
+  "OCaml",
+  "Move",
+  "HCL / Terraform",
+  "Protocol Buffers"
+]);
+
 const MAX_NOTES_LENGTH = 2_000;
 const MAX_EXECUTION_TIME_LENGTH = 100;
 
@@ -23,8 +75,14 @@ export default async function handler(req, res) {
     if (code.length > 10_000) {
       return res.status(400).json({ error: "Code exceeds the 10,000 character limit." });
     }
-    if (typeof language !== "string" || language.length > 100) {
-      return res.status(400).json({ error: "Language value is invalid." });
+    if (
+      typeof language !== "string" ||
+      language.length > 100 ||
+      !SUPPORTED_SIMULATED_LANGUAGES.has(language.trim())
+    ) {
+      return res.status(400).json({
+        error: "Language is not supported by the advertised editor catalog.",
+      });
     }
 
     const apiKey = getApiKey(customApiKey);
@@ -38,9 +96,11 @@ export default async function handler(req, res) {
     }
 
     const ai = createGemini(apiKey);
-    const prompt = `You are a high-precision multi-language virtual compiler and execution runtime engine.
-Simulate executing or compiling the following ${language} code.
-Accurately compute standard output (stdout), runtime warnings, standard error (stderr), and process return code.
+    const prompt = `You are an AI-assisted virtual execution simulator, not a compiler or native runtime.
+Simulate the expected behavior of the following ${language} code.
+Do not claim that code was actually compiled or executed by a real language runtime.
+Return a clearly simulated result with standard-output-like text, error-like text, and a simulated return code.
+Never invent a real compiler/interpreter version, runtime version, or hardware execution detail.
 
 Return ONLY a single valid JSON object with this exact schema:
 {
@@ -48,7 +108,7 @@ Return ONLY a single valid JSON object with this exact schema:
   "stderr": "error or warning string if any, otherwise empty string",
   "exitCode": 0,
   "executionTime": "0.05s",
-  "notes": "brief compiler/interpreter note"
+  "notes": "brief simulation note; never a real compiler/runtime/version claim"
 }
 
 Do not include any other markdown or text outside the JSON object.
