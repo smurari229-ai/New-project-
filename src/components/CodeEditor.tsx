@@ -330,14 +330,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           if (res.status === 404) {
             data = {
               stdout: "",
-              stderr: "Notice: The backend multi-language execution server is not running on this static host (e.g. GitHub Pages). HTML/CSS/JS sandbox executes 100% in your browser. For Python/C++/Go execution, run the app locally with 'npm run dev' or deploy to Render/Railway.",
+              stderr: "Notice: The backend multi-language simulation server is not available on this host.",
               exitCode: 1,
               executionTime: "0.00s",
-              notes: "Static Host (No Backend)",
+              notes: "Simulation backend unavailable",
             };
           } else {
             throw new Error(`Server returned HTTP status ${res.status}`);
           }
+        }
+
+        if (!res.ok) {
+          throw new Error(
+            typeof data?.error === "string"
+              ? data.error
+              : typeof data?.stderr === "string" && data.stderr.trim()
+                ? data.stderr
+                : `Code simulation failed with HTTP status ${res.status}`,
+          );
         }
 
         const newLogs: ConsoleLogItem[] = [];
