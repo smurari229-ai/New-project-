@@ -1,0 +1,81 @@
+import { test, expect } from "@playwright/test";
+
+test("main UI, tools, editor, and AI error recovery surface", async ({ page }) => {
+  const consoleErrors: string[] = [];
+  page.on("console", msg => {
+    const text = msg.text();
+    const expectedViteDevNoise =
+      text.includes("127.0.0.1:24678") &&
+      (text.includes("Content Security Policy") || text.includes("WebSocket connection"));
+    const viteFallbackNoise = text.includes("[vite] failed to connect to websocket");
+    if (msg.type() === "error" && !text.includes("status of 429") && !expectedViteDevNoise && !viteFallbackNoise) {
+      consoleErrors.push(text);
+    }
+  });
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /Developer Tools, Multi-Language Sandbox & AI Assistant/i })).toBeVisible();
+  await expect(page.locator("#search-all-tools-input")).toBeVisible();
+  await expect(page.getByText(/Developer Toolbox \(1,000 Tools\)/i)).toBeVisible();
+
+  await page.locator("#search-all-tools-input").fill("JSON");
+  await expect(page.getByText(/Filtered by:/i)).toBeVisible();
+  await page.locator("#search-all-tools-input").fill("");
+
+  await page.getByRole("button", { name: /^Security\s+\d+/ }).click();
+  await page.getByRole("button", { name: /^All\s+1000/ }).click();
+
+  await page.locator("#all-tools-grid").scrollIntoViewIfNeeded();
+  await expect(page.locator("#all-tools-grid")).toBeVisible();
+  const registryPlaceholder = page.getByText("Preparing the 850-tool registry…");
+  if (await registryPlaceholder.isVisible().catch(() => false)) await registryPlaceholder.scrollIntoViewIfNeeded();
+  const runTool = page.getByRole("button", { name: "Run Tool" }).first();
+  await expect(runTool).toBeVisible({ timeout: 20_000 });
+  await runTool.click();
+
+  await page.locator("#ai-assistant-section textarea").fill("test quota handling");
+  await page.route("**/api/ai/ask", async route => {
+    await route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Gemini usage quota/rate limit has been reached." }),
+    });
+  });
+  await page.getByRole("button", { name: "Ask AI" }).last().click();
+  await expect(page.getByText(/Gemini usage quota\/rate limit has been reached/i).last()).toBeVisible();
+
+  await expect(page.locator("body")).toHaveJSProperty("scrollWidth", await page.evaluate(() => document.documentElement.clientWidth));
+  expect(consoleErrors, consoleErrors.join("\n")).toEqual([]);
+});
+
+test("code editor sandbox renders and remains bounded", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#code-editor-section")).toBeVisible();
+  await expect(page.getByTitle("Live Output Preview")).toBeVisible();
+  const frame = page.frameLocator("#liveOutput");
+  await expect(frame.locator("body")).toBeVisible();
+});
+
+
+test("code editor rejects unauthorized and malformed sandbox messages", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("#code-editor-section")).toBeVisible();
+  await expect(page.getByTitle("Live Output Preview")).toBeVisible();
+
+  const marker = "__UNAUTHORIZED_SANDBOX_MESSAGE_SHOULD_NOT_RENDER__";
+  await page.evaluate((text) => {
+    window.postMessage(
+      {
+        type: "csh_sandbox_console",
+        level: "info",
+        text,
+        time: new Date().toLocaleTimeString(),
+        unexpectedProperty: "reject-me",
+      },
+      "*",
+    );
+  }, marker);
+
+  await page.waitForTimeout(300);
+  await expect(page.getByText(marker)).toHaveCount(0);
+});

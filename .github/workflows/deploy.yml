@@ -3,6 +3,8 @@ name: Build Check
 on:
   push:
     branches: ["main", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -24,6 +26,9 @@ jobs:
       - name: Install dependencies from npm lockfile
         run: npm ci
 
+      - name: Install browser test dependency
+        run: npm install --no-save --no-package-lock @playwright/test@1.63.0
+
       - name: TypeScript check
         run: npm run lint
 
@@ -36,8 +41,17 @@ jobs:
       - name: Dynamic tool quality regression check
         run: npx tsx scripts/quality-tool-smoke.ts
 
+      - name: Specialized semantic regression check
+        run: npx tsx scripts/specialized-semantic-smoke.ts
+
       - name: 1-1000 runtime smoke check
         run: npx tsx scripts/runtime-tool-smoke.ts
 
       - name: Build project
         run: npm run build
+
+      - name: Phase 4 browser and mobile acceptance
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.63.0
+          npx playwright install --with-deps chromium
+          npx playwright test --config=playwright.phase4.config.ts

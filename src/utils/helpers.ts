@@ -136,42 +136,59 @@ export function jsonToCsv(jsonInput: any[] | string): string {
 }
 
 export function csvToJson(csvText: string): any[] {
-  const lines = csvText.trim().split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) {
+  const input = csvText.trim();
+  if (!input) throw new Error("CSV must include a header and at least one data row");
+
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+
+    if (ch === '"') {
+      if (inQuotes && input[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      row.push(current);
+      current = "";
+      continue;
+    }
+
+    if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      row.push(current);
+      current = "";
+      if (row.length > 1 || row[0] !== "") rows.push(row);
+      row = [];
+      if (ch === "\r" && input[i + 1] === "\n") i++;
+      continue;
+    }
+
+    current += ch;
+  }
+
+  if (inQuotes) throw new Error("Malformed CSV: unclosed quoted field");
+  row.push(current);
+  if (row.length > 1 || row[0] !== "") rows.push(row);
+
+  if (rows.length < 2) {
     throw new Error("CSV must include a header and at least one data row");
   }
 
-  const parseLine = (line: string) => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (ch === "," && !inQuotes) {
-        result.push(current);
-        current = "";
-      } else {
-        current += ch;
-      }
-    }
-    if (inQuotes) throw new Error("Malformed CSV: unclosed quoted field");
-    result.push(current);
-    return result;
-  };
-
-  const headers = parseLine(lines[0]);
+  const headers = rows[0];
   if (headers.length === 0 || headers.some((h) => !h.trim())) {
     throw new Error("CSV header contains an empty column name");
   }
-  return lines.slice(1).map((line) => {
-    const values = parseLine(line);
+
+  return rows.slice(1).map((values) => {
     const obj: Record<string, string> = {};
     headers.forEach((h, i) => {
       obj[h] = values[i] ?? "";

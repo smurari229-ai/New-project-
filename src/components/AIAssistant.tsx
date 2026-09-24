@@ -105,6 +105,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   const handleSend = async (customPrompt?: string) => {
+    // Prevent overlapping AI calls from cross-component shortcuts while a
+    // previous request is still in flight; concurrent calls can multiply
+    // project-level Gemini quota consumption.
+    if (loading) return;
+
     const textToSend = (customPrompt || prompt).trim();
     if (!textToSend) return;
 

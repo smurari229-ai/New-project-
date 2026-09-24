@@ -136,11 +136,39 @@ const DynamicToolItem: React.FC<DynamicToolItemProps> = ({ tool }) => {
   const initialValue1 = tool.default1 ?? (tool.inputType === "select-text" ? tool.options?.[0]?.value ?? "" : "");
   const [val1, setVal1] = useState<string>(initialValue1);
   const [val2, setVal2] = useState<string>(tool.default2 ?? "");
-  const [output, setOutput] = useState<string>(() => {
-    try { return tool.run(initialValue1, tool.default2 ?? ""); }
-    catch { return ""; }
-  });
+  // Defer the initial sample calculation until the browser is idle so the
+  // first 36 visible cards do not all execute synchronously during render.
+  // This preserves the existing default output without blocking first paint.
+  const [output, setOutput] = useState<string>("");
   const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const runInitial = () => {
+      if (cancelled) return;
+      try {
+        setOutput(tool.run(initialValue1, tool.default2 ?? ""));
+        setIsError(false);
+      } catch {
+        setOutput("");
+        setIsError(false);
+      }
+    };
+
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(runInitial, { timeout: 1000 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback(idleId);
+      };
+    }
+
+    const timeoutId = setTimeout(runInitial, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [tool, initialValue1]);
 
   const execute = (v1 = val1, v2 = val2) => {
     try {

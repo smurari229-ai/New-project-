@@ -50,7 +50,7 @@ if (typeof setInterval === "function") {
   }, 5 * 60_000).unref?.();
 }
 
-export function isTransientError(error) {
+function getGeminiErrorInfo(error) {
   const status =
     error?.status ||
     error?.code ||
@@ -60,18 +60,30 @@ export function isTransientError(error) {
   const msg = String(
     error?.message || error?.error?.message || error || ""
   ).toLowerCase();
+  return { status, msg };
+}
 
+export function isQuotaError(error) {
+  const { status, msg } = getGeminiErrorInfo(error);
+  return (
+    status === 429 ||
+    status === "RESOURCE_EXHAUSTED" ||
+    msg.includes("429") ||
+    msg.includes("resource has been exhausted") ||
+    msg.includes("quota exceeded") ||
+    msg.includes("rate limit")
+  );
+}
+
+export function isTransientError(error) {
+  const { status, msg } = getGeminiErrorInfo(error);
   return (
     status === 503 ||
-    status === 429 ||
     status === "UNAVAILABLE" ||
-    status === "RESOURCE_EXHAUSTED" ||
     msg.includes("503") ||
-    msg.includes("429") ||
     msg.includes("high demand") ||
     msg.includes("unavailable") ||
     msg.includes("overloaded") ||
-    msg.includes("resource has been exhausted") ||
     msg.includes("spikes in demand are usually temporary") ||
     msg.includes("try again later")
   );
@@ -97,6 +109,12 @@ export async function generateWithFallback(ai, params) {
         return { response, modelUsed: model };
       } catch (error) {
         lastError = error;
+        // 429/RESOURCE_EXHAUSTED is a quota/rate-limit signal. Retrying the
+        // same request across models can multiply quota consumption, so fail
+        // fast and let the caller surface the real 429 to the user.
+        if (isQuotaError(error)) {
+          throw error;
+        }
         if (isTransientError(error)) {
           const delayMs = attempt === 1 ? 600 + Math.random() * 400 : 1200;
           await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -123,6 +141,7 @@ export function createGemini(apiKey) {
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
+      timeout: 30_000,
       headers: { "User-Agent": "aistudio-build" },
     },
   });

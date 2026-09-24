@@ -12,6 +12,18 @@ const MAX_JSON_BODY = "512kb";
 const MAX_PROMPT_LENGTH = 20_000;
 const MAX_CODE_LENGTH = 10_000;
 const MAX_CUSTOM_KEY_LENGTH = 256;
+const MAX_OUTPUT_LENGTH = 40_000;
+const MAX_HISTORY_ITEM_LENGTH = 4_000;
+const MAX_HISTORY_CONTEXT_LENGTH = 18_000;
+
+const SUPPORTED_SIMULATED_LANGUAGES = new Set([
+  "JavaScript", "TypeScript", "Python", "HTML", "CSS", "Rust", "Go", "C++", "C", "C#",
+  "Java", "Kotlin", "Swift", "Dart", "PHP", "Ruby", "R", "SQL", "Bash", "PowerShell",
+  "Lua", "Julia", "Solidity", "Zig", "GraphQL", "JSON", "YAML", "Markdown", "Dockerfile",
+  "Elixir", "Haskell", "Scala", "Perl", "Assembly", "WebAssembly", "Vyper", "GDScript",
+  "Verilog", "VHDL", "Nim", "Fortran", "COBOL", "Objective-C", "F#", "OCaml", "Move",
+  "HCL / Terraform", "Protocol Buffers"
+]);
 
 // Valid models from @google/genai guidelines with high-throughput fallbacks
 const CANDIDATE_MODELS = [
@@ -20,7 +32,7 @@ const CANDIDATE_MODELS = [
   "gemini-3.1-flash-lite",
 ];
 
-function isTransientError(error: any): boolean {
+function getGeminiErrorInfo(error: any) {
   const status =
     error?.status ||
     error?.code ||
@@ -30,18 +42,30 @@ function isTransientError(error: any): boolean {
   const msg = String(
     error?.message || error?.error?.message || error || ""
   ).toLowerCase();
+  return { status, msg };
+}
 
+function isQuotaError(error: any): boolean {
+  const { status, msg } = getGeminiErrorInfo(error);
+  return (
+    status === 429 ||
+    status === "RESOURCE_EXHAUSTED" ||
+    msg.includes("429") ||
+    msg.includes("resource has been exhausted") ||
+    msg.includes("quota exceeded") ||
+    msg.includes("rate limit")
+  );
+}
+
+function isTransientError(error: any): boolean {
+  const { status, msg } = getGeminiErrorInfo(error);
   return (
     status === 503 ||
-    status === 429 ||
     status === "UNAVAILABLE" ||
-    status === "RESOURCE_EXHAUSTED" ||
     msg.includes("503") ||
-    msg.includes("429") ||
     msg.includes("high demand") ||
     msg.includes("unavailable") ||
     msg.includes("overloaded") ||
-    msg.includes("resource has been exhausted") ||
     msg.includes("spikes in demand are usually temporary") ||
     msg.includes("try again later")
   );
@@ -119,6 +143,11 @@ async function generateWithFallback(
           `[Gemini API] Attempt ${attempt} on model "${model}" failed: ${err?.message || err}`
         );
 
+        if (isQuotaError(err)) {
+          // A quota/rate-limit error will not be fixed by retrying across
+          // models; doing so can multiply project-level quota consumption.
+          throw err;
+        }
         if (isTransientError(err)) {
           // Exponential backoff with jitter before retry or next model
           const delayMs = attempt === 1 ? 600 + Math.random() * 400 : 1200;
@@ -146,6 +175,7 @@ async function startServer() {
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://ipapi.co; frame-src 'self' blob:;");
     if (process.env.NODE_ENV === "production") {
       res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     }
@@ -187,6 +217,7 @@ async function startServer() {
       const ai = new GoogleGenAI({
         apiKey,
         httpOptions: {
+          timeout: 30_000,
           headers: {
             "User-Agent": "aistudio-build",
           },
@@ -204,14 +235,20 @@ Your goal:
 
       const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-      if (Array.isArray(history)) {
-        for (const item of history.slice(-8)) {
-          if (item && item.text) {
-            contents.push({
-              role: item.role === "bot" || item.role === "model" ? "model" : "user",
-              parts: [{ text: String(item.text).slice(0, 4_000) }],
-            });
-          }
+      if (Array.isArray(history) && history.length > 0) {
+        const contextParts = history
+          .slice(-6)
+          .filter((item) => item && item.text)
+          .map((item) => {
+            const role = item.role === "bot" || item.role === "model" ? "Assistant" : "User";
+            return `${role}: ${String(item.text).slice(0, MAX_HISTORY_ITEM_LENGTH)}`;
+          });
+        const context = contextParts.join("\n\n").slice(0, MAX_HISTORY_CONTEXT_LENGTH);
+        if (context) {
+          contents.push({
+            role: "user",
+            parts: [{ text: `Recent conversation context (reference only):\n\n${context}` }],
+          });
         }
       }
 
@@ -226,17 +263,21 @@ Your goal:
         config: { systemInstruction },
       });
 
-      const text = String(response.text || "No response generated.").slice(0, 40_000);
+      const text = String(response.text || "No response generated.").slice(0, MAX_OUTPUT_LENGTH);
       return res.json({ answer: text, modelUsed });
     } catch (error: any) {
       console.error("Gemini API error:", error);
       const isHighDemand = isTransientError(error);
-      const userMessage = isHighDemand
-        ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
-        : (error?.message || "Failed to process AI request");
-      return res.status(isHighDemand ? 503 : 500).json({
+      const isQuota = isQuotaError(error);
+      const userMessage = isQuota
+        ? "Gemini usage quota/rate limit has been reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key."
+        : isHighDemand
+          ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
+          : (error?.message || "Failed to process AI request");
+      return res.status(isQuota ? 429 : isHighDemand ? 503 : 500).json({
         error: userMessage,
         isHighDemand,
+        isQuota,
       });
     }
   });
@@ -254,8 +295,12 @@ Your goal:
       const { language = "text", code, customApiKey } = req.body || {};
       const validationError = validateApiInput(code, customApiKey, MAX_CODE_LENGTH);
       if (validationError) return res.status(400).json({ error: validationError });
-      if (typeof language !== "string" || language.length > 100) {
-        return res.status(400).json({ error: "Language value is invalid" });
+      if (
+        typeof language !== "string" ||
+        language.length > 100 ||
+        !SUPPORTED_SIMULATED_LANGUAGES.has(language.trim())
+      ) {
+        return res.status(400).json({ error: "Language is not supported by the advertised editor catalog." });
       }
 
       const apiKey =
@@ -280,9 +325,9 @@ Your goal:
         },
       });
 
-      const prompt = `You are a high-precision multi-language virtual compiler and execution runtime engine.
-Simulate executing or compiling the following ${language} code.
-Accurately compute standard output (stdout), runtime warnings, standard error (stderr), and process return code.
+      const prompt = `You are an AI-assisted virtual execution simulator, not a compiler or native runtime.
+Simulate the expected behavior of the following ${language} code.
+Do not claim that code was actually compiled or executed by a real language runtime.\nReturn a clearly simulated result with standard-output-like text, error-like text, and a simulated return code.\nNever invent a real compiler/interpreter version, runtime version, or hardware execution detail.
 
 Return ONLY a single valid JSON object with this exact schema:
 {
@@ -290,7 +335,7 @@ Return ONLY a single valid JSON object with this exact schema:
   "stderr": "error or warning string if any, otherwise empty string",
   "exitCode": 0,
   "executionTime": "0.05s",
-  "notes": "brief compiler/interpreter note (e.g. Python 3.12 or gcc 14.1)"
+  "notes": "brief simulation note; never a real compiler/runtime/version claim"
 }
 
 Do not include any other markdown or text outside the JSON object.
@@ -305,7 +350,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         const { response, modelUsed } = await generateWithFallback(ai, {
           preferredModel: "gemini-3.8-flash",
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: { responseMimeType: "application/json" },
+          config: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
         });
 
         const raw = response.text || "{}";
@@ -313,16 +358,25 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
           throw new Error("Virtual runtime returned an invalid response object.");
         }
-        parsed.stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, 40_000) : "";
-        parsed.stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, 40_000) : "";
+        parsed.stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, MAX_OUTPUT_LENGTH) : "";
+        parsed.stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, MAX_OUTPUT_LENGTH) : "";
         parsed.exitCode = Number.isFinite(Number(parsed.exitCode)) ? Math.trunc(Number(parsed.exitCode)) : 1;
         parsed.executionTime = typeof parsed.executionTime === "string" && parsed.executionTime.trim() ? parsed.executionTime.slice(0, 100) : "0.00s";
-        parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} virtual runtime (${modelUsed})`;
+        parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} simulation (${modelUsed}); AI-estimated output, not native execution`;
       } catch (geminiErr: any) {
-        if (isTransientError(geminiErr)) {
-          return res.status(200).json({
+        if (isQuotaError(geminiErr)) {
+          return res.status(429).json({
             stdout: "",
-            stderr: "⚠️ Notice: The virtual execution engine is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
+            stderr: "⚠️ Gemini usage quota/rate limit reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key.",
+            exitCode: 1,
+            executionTime: "0.00s",
+            notes: "Gemini quota/rate limit",
+          });
+        }
+        if (isTransientError(geminiErr)) {
+          return res.status(503).json({
+            stdout: "",
+            stderr: "⚠️ Notice: The virtual execution simulation is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
             exitCode: 1,
             executionTime: "0.00s",
             notes: "High demand spike - Retry available",
@@ -336,7 +390,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
       console.error("Code runner API error:", error);
       return res.status(500).json({
         stdout: "",
-        stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, 40_000),
+        stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
         exitCode: 1,
         executionTime: "0.00s",
         notes: "Execution halted",

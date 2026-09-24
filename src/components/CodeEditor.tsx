@@ -75,6 +75,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const previewFrameRef = useRef<HTMLIFrameElement>(null);
 
   const isWebLanguage = (lang: string) => {
     const l = lang.toLowerCase().trim();
@@ -148,18 +149,36 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     });
   }, [currentLang, onLanguageChange, registerApplyCodeHandler]);
 
-  // Listen to sandbox postMessages for console output
+  // The sandbox intentionally omits allow-same-origin, so srcDoc has an opaque origin.
+  // That makes a fixed targetOrigin unreliable; security therefore relies on the
+  // expected iframe Window identity plus a strict message type/payload allowlist.
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
-      if (e.data && e.data.type === "csh_sandbox_console") {
-        const item: ConsoleLogItem = {
-          id: Math.random().toString(36).substring(2, 9),
-          type: e.data.level === "error" ? "error" : e.data.level === "warn" ? "warn" : "info",
-          text: e.data.text || "",
-          time: e.data.time || new Date().toLocaleTimeString(),
-        };
-        setTerminalLogs((prev) => [...prev.slice(-99), item]);
+      if (e.source !== previewFrameRef.current?.contentWindow) return;
+
+      const data = e.data;
+      if (!data || typeof data !== "object" || Array.isArray(data)) return;
+
+      const allowedKeys = new Set(["type", "level", "text", "time"]);
+      const keys = Object.keys(data);
+      if (
+        keys.some((key) => !allowedKeys.has(key)) ||
+        data.type !== "csh_sandbox_console" ||
+        (data.level !== "info" && data.level !== "warn" && data.level !== "error") ||
+        typeof data.text !== "string" ||
+        data.text.length > 4_000 ||
+        (data.time !== undefined && (typeof data.time !== "string" || data.time.length > 100))
+      ) {
+        return;
       }
+
+      const item: ConsoleLogItem = {
+        id: Math.random().toString(36).substring(2, 9),
+        type: data.level,
+        text: data.text,
+        time: data.time || new Date().toLocaleTimeString(),
+      };
+      setTerminalLogs((prev) => [...prev.slice(-99), item]);
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
@@ -228,7 +247,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               function send(level, args) {
                 try {
                   var str = Array.from(args).map(formatArg).join(' ');
-                  window.parent.postMessage({ type: 'csh_sandbox_console', level: level, text: str, time: new Date().toLocaleTimeString() }, '*');
+                  // srcDoc is sandboxed without allow-same-origin, so its origin is opaque.
+                  // A stable targetOrigin is unavailable; the parent strictly validates
+                  // the expected iframe Window and the message schema before consuming it.
+                  window.parent.postMessage({ type: 'csh_sandbox_console', level: level, text: str.slice(0, 4000), time: new Date().toLocaleTimeString() }, '*');
                 } catch(e) {}
               }
               console.log = function() { send('info', arguments); _log.apply(console, arguments); };
@@ -308,14 +330,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           if (res.status === 404) {
             data = {
               stdout: "",
-              stderr: "Notice: The backend multi-language execution server is not running on this static host (e.g. GitHub Pages). HTML/CSS/JS sandbox executes 100% in your browser. For Python/C++/Go execution, run the app locally with 'npm run dev' or deploy to Render/Railway.",
+              stderr: "Notice: The backend multi-language simulation server is not available on this host.",
               exitCode: 1,
               executionTime: "0.00s",
-              notes: "Static Host (No Backend)",
+              notes: "Simulation backend unavailable",
             };
           } else {
             throw new Error(`Server returned HTTP status ${res.status}`);
           }
+        }
+
+        if (!res.ok) {
+          throw new Error(
+            typeof data?.error === "string"
+              ? data.error
+              : typeof data?.stderr === "string" && data.stderr.trim()
+                ? data.stderr
+                : `Code simulation failed with HTTP status ${res.status}`,
+          );
         }
 
         const newLogs: ConsoleLogItem[] = [];
@@ -960,6 +992,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white shadow-inner">
             <iframe
               id="liveOutput"
+              ref={previewFrameRef}
               title="Live Output Preview"
               srcDoc={srcDoc}
               sandbox="allow-scripts allow-modals"
