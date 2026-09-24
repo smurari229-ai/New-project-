@@ -8,7 +8,7 @@ export default defineConfig({
   expect: { timeout: 5000 },
   workers: 1,
   webServer: {
-    command: "npm run dev",
+    command: "DISABLE_HMR=true npm run dev",
     url: "http://127.0.0.1:3000/",
     reuseExistingServer: false,
     timeout: 120000,
