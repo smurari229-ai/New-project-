@@ -36,10 +36,10 @@ check("659 constant", tool(659).run("5,5,5"), "Original:   [5, 5, 5]\nNormalized
 check("659 malformed", tool(659).run("10,nope,20"), "Error: Enter at least one valid number");
 
 // Cross-range execution coverage: one tool from each dynamic range, with input-sensitive output.
-const representatives: Array<[number, string, string]> = [
+const representatives: Array<[number, string, string, string?]> = [
   [151, "semantic-A", "semantic-B"],
   [251, "foo", "bar"],
-  [351, "48", "18"],
+  [351, "48", "35", "two-numeric"],
   [451, "Hello World", "Completely Different 98765"],
   [521, "semantic-A", "semantic-B"],
   [651, "Architect", "Developer"],
@@ -48,10 +48,11 @@ const representatives: Array<[number, string, string]> = [
   [851, "777", "000"],
   [951, "HELLO", "WORLD"],
 ];
-for (const [id, inputA, inputB] of representatives) {
+
+for (const [id, inputA, inputB, mode] of representatives) {
   const t = tool(id);
-  const a = String(t.run(inputA, "alpha"));
-  const b = String(t.run(inputB, "beta"));
+  const a = mode === "two-numeric" ? String(t.run(inputA, "18")) : String(t.run(inputA, "alpha"));
+  const b = mode === "two-numeric" ? String(t.run(inputB, "14")) : String(t.run(inputB, "beta"));
   if (!a && !b) failures.push(`#${id} returned empty output for both representative inputs`);
   if (a === b) failures.push(`#${id} produced identical output for unrelated valid inputs`);
 }
