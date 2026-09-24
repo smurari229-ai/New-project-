@@ -7,7 +7,14 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
   page.on("console", (msg) => {
-    if (msg.type() === "error" && !msg.text().includes("status of 429")) errors.push(`console: ${msg.text()}`);
+    if (msg.type() === "error" && !msg.text().includes("status of 429")) {
+      const text = msg.text();
+      const isLocalHmrNoise =
+        text.includes("ws://127.0.0.1:24678/") ||
+        text.includes("Connecting to 'ws://127.0.0.1:24678") ||
+        text.includes("Failed to load resource: the server responded with a status of 400") && text.includes("24678");
+      if (!isLocalHmrNoise) errors.push(`console: ${text}`);
+    }
   });
 
   await page.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
