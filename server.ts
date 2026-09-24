@@ -12,6 +12,18 @@ const MAX_JSON_BODY = "512kb";
 const MAX_PROMPT_LENGTH = 20_000;
 const MAX_CODE_LENGTH = 10_000;
 const MAX_CUSTOM_KEY_LENGTH = 256;
+const MAX_OUTPUT_LENGTH = 40_000;
+const MAX_HISTORY_ITEM_LENGTH = 4_000;
+const MAX_HISTORY_CONTEXT_LENGTH = 18_000;
+
+const SUPPORTED_SIMULATED_LANGUAGES = new Set([
+  "JavaScript", "TypeScript", "Python", "HTML", "CSS", "Rust", "Go", "C++", "C", "C#",
+  "Java", "Kotlin", "Swift", "Dart", "PHP", "Ruby", "R", "SQL", "Bash", "PowerShell",
+  "Lua", "Julia", "Solidity", "Zig", "GraphQL", "JSON", "YAML", "Markdown", "Dockerfile",
+  "Elixir", "Haskell", "Scala", "Perl", "Assembly", "WebAssembly", "Vyper", "GDScript",
+  "Verilog", "VHDL", "Nim", "Fortran", "COBOL", "Objective-C", "F#", "OCaml", "Move",
+  "HCL / Terraform", "Protocol Buffers"
+]);
 
 // Valid models from @google/genai guidelines with high-throughput fallbacks
 const CANDIDATE_MODELS = [
@@ -187,8 +199,12 @@ async function startServer() {
       const { prompt, history = [], language = "javascript", customApiKey } = req.body || {};
       const validationError = validateApiInput(prompt, customApiKey, MAX_PROMPT_LENGTH);
       if (validationError) return res.status(400).json({ error: validationError });
-      if (typeof language !== "string" || language.length > 100) {
-        return res.status(400).json({ error: "Language value is invalid" });
+      if (
+        typeof language !== "string" ||
+        language.length > 100 ||
+        !SUPPORTED_SIMULATED_LANGUAGES.has(language.trim())
+      ) {
+        return res.status(400).json({ error: "Language is not supported by the advertised editor catalog." });
       }
 
       const apiKey =
@@ -205,6 +221,7 @@ async function startServer() {
       const ai = new GoogleGenAI({
         apiKey,
         httpOptions: {
+          timeout: 30_000,
           headers: {
             "User-Agent": "aistudio-build",
           },
@@ -222,14 +239,20 @@ Your goal:
 
       const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-      if (Array.isArray(history)) {
-        for (const item of history.slice(-8)) {
-          if (item && item.text) {
-            contents.push({
-              role: item.role === "bot" || item.role === "model" ? "model" : "user",
-              parts: [{ text: String(item.text).slice(0, 4_000) }],
-            });
-          }
+      if (Array.isArray(history) && history.length > 0) {
+        const contextParts = history
+          .slice(-6)
+          .filter((item) => item && item.text)
+          .map((item) => {
+            const role = item.role === "bot" || item.role === "model" ? "Assistant" : "User";
+            return `${role}: ${String(item.text).slice(0, MAX_HISTORY_ITEM_LENGTH)}`;
+          });
+        const context = contextParts.join("\n\n").slice(0, MAX_HISTORY_CONTEXT_LENGTH);
+        if (context) {
+          contents.push({
+            role: "user",
+            parts: [{ text: `Recent conversation context (reference only):\n\n${context}` }],
+          });
         }
       }
 
@@ -244,7 +267,7 @@ Your goal:
         config: { systemInstruction },
       });
 
-      const text = String(response.text || "No response generated.").slice(0, 40_000);
+      const text = String(response.text || "No response generated.").slice(0, MAX_OUTPUT_LENGTH);
       return res.json({ answer: text, modelUsed });
     } catch (error: any) {
       console.error("Gemini API error:", error);
@@ -302,9 +325,9 @@ Your goal:
         },
       });
 
-      const prompt = `You are a high-precision multi-language virtual compiler and execution runtime engine.
-Simulate executing or compiling the following ${language} code.
-Accurately compute standard output (stdout), runtime warnings, standard error (stderr), and process return code.
+      const prompt = `You are an AI-assisted virtual execution simulator, not a compiler or native runtime.
+Simulate the expected behavior of the following ${language} code.
+Do not claim that code was actually compiled or executed by a real language runtime.\nReturn a clearly simulated result with standard-output-like text, error-like text, and a simulated return code.\nNever invent a real compiler/interpreter version, runtime version, or hardware execution detail.
 
 Return ONLY a single valid JSON object with this exact schema:
 {
@@ -312,7 +335,7 @@ Return ONLY a single valid JSON object with this exact schema:
   "stderr": "error or warning string if any, otherwise empty string",
   "exitCode": 0,
   "executionTime": "0.05s",
-  "notes": "brief compiler/interpreter note (e.g. Python 3.12 or gcc 14.1)"
+  "notes": "brief simulation note; never a real compiler/runtime/version claim"
 }
 
 Do not include any other markdown or text outside the JSON object.
@@ -335,11 +358,11 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
           throw new Error("Virtual runtime returned an invalid response object.");
         }
-        parsed.stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, 40_000) : "";
-        parsed.stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, 40_000) : "";
+        parsed.stdout = typeof parsed.stdout === "string" ? parsed.stdout.slice(0, MAX_OUTPUT_LENGTH) : "";
+        parsed.stderr = typeof parsed.stderr === "string" ? parsed.stderr.slice(0, MAX_OUTPUT_LENGTH) : "";
         parsed.exitCode = Number.isFinite(Number(parsed.exitCode)) ? Math.trunc(Number(parsed.exitCode)) : 1;
         parsed.executionTime = typeof parsed.executionTime === "string" && parsed.executionTime.trim() ? parsed.executionTime.slice(0, 100) : "0.00s";
-        parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} virtual runtime (${modelUsed})`;
+        parsed.notes = typeof parsed.notes === "string" && parsed.notes.trim() ? parsed.notes.slice(0, 2_000) : `${language} simulation (${modelUsed}); AI-estimated output, not native execution`;
       } catch (geminiErr: any) {
         if (isQuotaError(geminiErr)) {
           return res.status(429).json({
@@ -353,7 +376,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
         if (isTransientError(geminiErr)) {
           return res.status(503).json({
             stdout: "",
-            stderr: "⚠️ Notice: The virtual execution engine is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
+            stderr: "⚠️ Notice: The virtual execution simulation is temporarily under high demand on Google servers. Please wait a few seconds and click 'Run' again.",
             exitCode: 1,
             executionTime: "0.00s",
             notes: "High demand spike - Retry available",
@@ -367,7 +390,7 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
       console.error("Code runner API error:", error);
       return res.status(500).json({
         stdout: "",
-        stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, 40_000),
+        stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
         exitCode: 1,
         executionTime: "0.00s",
         notes: "Execution halted",
