@@ -5,6 +5,12 @@ const TEXT_CASES = ["", "   ", "deep audit sample 🚀", '<>&"\'\\/\\n', "x".rep
 
 test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", async ({ page }) => {
   const errors: string[] = [];
+  const localHmr400Responses = new Set<string>();
+  page.on("response", (response) => {
+    if (response.status() === 400 && response.url().includes("127.0.0.1:24678")) {
+      localHmr400Responses.add(response.url());
+    }
+  });
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
   page.on("console", (msg) => {
     if (msg.type() === "error" && !msg.text().includes("status of 429")) {
@@ -12,7 +18,8 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
       const isLocalHmrNoise =
         text.includes("ws://127.0.0.1:24678/") ||
         text.includes("Connecting to 'ws://127.0.0.1:24678") ||
-        text.includes("Failed to load resource: the server responded with a status of 400") && text.includes("24678");
+        (text.includes("Failed to load resource: the server responded with a status of 400") &&
+          Array.from(localHmr400Responses).some((url) => url.includes("127.0.0.1:24678")));
       if (!isLocalHmrNoise) errors.push(`console: ${text}`);
     }
   });
