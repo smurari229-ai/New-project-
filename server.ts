@@ -319,6 +319,7 @@ Your goal:
       const ai = new GoogleGenAI({
         apiKey,
         httpOptions: {
+          timeout: 30_000,
           headers: {
             "User-Agent": "aistudio-build",
           },
