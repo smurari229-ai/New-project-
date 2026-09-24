@@ -17,7 +17,7 @@ function sha256Bytes(input: number[]): number[] {
   const padLength = byteLength % 64 < 56 ? 64 : 128;
   const padded = input.slice();
   padded.push(0x80);
-  while (padded.length < byteLength + padLength - 8) padded.push(0);
+  while (padded.length % 64 !== 56) padded.push(0);
 
   const bitLengthHigh = Math.floor(byteLength / 0x20000000);
   const bitLengthLow = byteLength << 3;
