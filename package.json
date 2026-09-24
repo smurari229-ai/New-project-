@@ -15,6 +15,8 @@
     "test:repair": "node scripts/repair-smoke-tests.mjs",
     "test:quality": "tsx scripts/quality-tool-smoke.ts",
     "test:runtime": "tsx scripts/runtime-tool-smoke.ts",
+    "test:dynamic-edge": "tsx scripts/dynamic-edge-phase7.ts",
+    "test:performance": "tsx scripts/performance-phase7.ts",
     "test:static": "npx playwright test --config=playwright.static-audit.config.ts"
   },
   "dependencies": {
