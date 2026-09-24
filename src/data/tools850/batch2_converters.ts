@@ -1049,6 +1049,7 @@ export const BATCH_2_CONVERTER_TOOLS: DynamicTool[] = [
       const decodeLabel = (label: string): string => {
         if (!label.toLowerCase().startsWith("xn--")) return label;
         const input = label.slice(4).toLowerCase();
+        if (!input) throw new Error("Invalid Punycode");
         const output = Array.from(input);
         const basic = input.lastIndexOf("-");
         let index = basic < 0 ? 0 : basic + 1;
@@ -1094,10 +1095,10 @@ export const BATCH_2_CONVERTER_TOOLS: DynamicTool[] = [
       try {
         const domain = v.trim();
         if (!domain) return "Error: Domain is required";
-        const decoded = domain
-          .split(".")
-          .map((label) => decodeLabel(label))
-          .join(".");
+        if (domain.length > 253) return "Error: Domain is too long";
+        const labels = domain.split(".");
+        if (labels.some((label) => !label || label.length > 63)) return "Error: Invalid Punycode/IDN domain";
+        const decoded = labels.map((label) => decodeLabel(label)).join(".");
         return `Decoded Domain: ${decoded}`;
       } catch {
         return "Error: Invalid Punycode/IDN domain";
