@@ -151,11 +151,10 @@ export const BATCH_6_DATA_AI_TOOLS: DynamicTool[] = [
     inputType: "text",
     default1: "10, 20, 35, 50, 90",
     run: (v) => {
-      const nums = v
-        .split(",")
-        .map((value) => Number(value.trim()))
-        .filter((n) => Number.isFinite(n));
-      if (nums.length === 0) return "Error: Enter at least one valid number";
+      const parts = v.split(",").map((value) => value.trim());
+      if (!v.trim() || parts.some((value) => value === "")) return "Error: Enter at least one valid number";
+      const nums = parts.map(Number);
+      if (nums.some((n) => !Number.isFinite(n))) return "Error: Enter at least one valid number";
       const min = Math.min(...nums);
       const max = Math.max(...nums);
       const normalized =
