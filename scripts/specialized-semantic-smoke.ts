@@ -24,6 +24,7 @@ check("Tool 298 exists", Boolean(punycode), "missing");
 if (punycode) {
   check("Punycode München", punycode.run("xn--mnchen-3ya.de") === "Decoded Domain: münchen.de", punycode.run("xn--mnchen-3ya.de"));
   check("Punycode ASCII", punycode.run("example.com") === "Decoded Domain: example.com", punycode.run("example.com"));
+  check("Punycode IDN", punycode.run("xn--bcher-kva.de") === "Decoded Domain: bücher.de", punycode.run("xn--bcher-kva.de"));
   check("Punycode invalid", punycode.run("xn--") === "Error: Invalid Punycode/IDN domain", punycode.run("xn--"));
   check("Punycode empty", punycode.run("   ") === "Error: Domain is required", punycode.run("   "));
 }
