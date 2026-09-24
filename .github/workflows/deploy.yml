@@ -47,11 +47,21 @@ jobs:
       - name: 1-1000 runtime smoke check
         run: npx tsx scripts/runtime-tool-smoke.ts
 
+      - name: Phase 7 dynamic edge matrix
+        run: npx tsx scripts/dynamic-edge-phase7.ts
+
+      - name: Phase 7 performance benchmark
+        run: npx tsx scripts/performance-phase7.ts
+
       - name: Build project
         run: npm run build
 
-      - name: Phase 4 browser and mobile acceptance
+      - name: Phase 7 static 1-150 exhaustive edge acceptance
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.63.0
           npx playwright install --with-deps chromium
+          npx playwright test --config=playwright.static-audit.config.ts
+
+      - name: Phase 4 browser and mobile acceptance
+        run: |
           npx playwright test --config=playwright.phase4.config.ts
