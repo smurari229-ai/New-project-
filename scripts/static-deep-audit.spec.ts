@@ -6,7 +6,11 @@ const TEXT_CASES = ["", "   ", "deep audit sample 🚀", '<>&"\'\\/\\n', "x".rep
 test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", async ({ page }) => {
   const errors: string[] = [];
   const localHmr400Responses = new Set<string>();
+  const unexpected400Responses = new Set<string>();
   page.on("response", (response) => {
+    if (response.status() === 400) {
+      unexpected400Responses.add(response.url());
+    }
     if (response.status() === 400 && response.url().includes("127.0.0.1:24678")) {
       localHmr400Responses.add(response.url());
     }
@@ -78,5 +82,5 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
     }
   }
 
-  expect(errors, `Static tool runtime errors: ${errors.join(" | ")}`).toEqual([]);
+  expect(errors, `Static tool runtime errors: ${errors.join(" | ")}; 400 responses: ${Array.from(unexpected400Responses).join(" | ")}`).toEqual([]);
 });
