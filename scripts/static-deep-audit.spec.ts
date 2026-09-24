@@ -1,15 +1,9 @@
 // @ts-nocheck
 import { test, expect } from "@playwright/test";
 
-const TEXT_CASES = [
-  "",
-  "   ",
-  "deep audit sample 🚀",
-  '<>&"\'\\/\\n',
-  "x".repeat(2048),
-];
+const TEXT_CASES = ["", "   ", "deep audit sample 🚀", '<>&"\'\\/\\n', "x".repeat(2048)];
 
-test("static tools 1-150 exhaustive control and edge-input smoke", async ({ page }) => {
+test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
   page.on("console", (msg) => {
@@ -18,7 +12,16 @@ test("static tools 1-150 exhaustive control and edge-input smoke", async ({ page
 
   await page.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
 
-  for (let id = 1; id <= 150; id += 1) {
+  await expect(page.locator("#code-editor-section")).toBeVisible();
+  await expect(page.locator("#code-editor-section textarea").first()).toBeVisible();
+  await page.locator("#code-editor-section textarea").first().fill("console.log('phase7 🚀 <>&');");
+  const editorButtons = page.locator("#code-editor-section button");
+  for (let i = 0; i < await editorButtons.count(); i += 1) {
+    const button = editorButtons.nth(i);
+    if (await button.isEnabled().catch(() => false)) await button.click({ timeout: 3000 }).catch(() => {});
+  }
+
+  for (let id = 2; id <= 150; id += 1) {
     const card = page.locator(`#tool-${id}`);
     await expect(card, `Tool #${id} must render exactly once`).toHaveCount(1);
     await card.scrollIntoViewIfNeeded();
@@ -41,9 +44,7 @@ test("static tools 1-150 exhaustive control and edge-input smoke", async ({ page
       if (["checkbox", "radio", "color", "range", "date", "datetime-local", "time", "file"].includes(type || "")) continue;
 
       for (const sample of TEXT_CASES) {
-        const value = type === "number"
-          ? (sample === "" || sample.trim() === "" ? "0" : "2")
-          : sample;
+        const value = type === "number" ? (sample.trim() ? "2" : "0") : sample;
         await control.fill(value);
       }
     }
