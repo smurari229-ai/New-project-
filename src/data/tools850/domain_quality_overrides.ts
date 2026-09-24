@@ -13,18 +13,40 @@ const K256 = [
   0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2,
 ];
 function sha256Bytes(input: number[]): number[] {
-  const a = input.slice(); const bitLen = a.length * 8;
-  a.push(0x80); while (a.length % 64 !== 56) a.push(0);
-  const hi = Math.floor(bitLen / 0x100000000), lo = bitLen >>> 0;
-  for (const n of [hi, lo]) a.push((n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255);
-  let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
-  for(let off=0;off<a.length;off+=64){
-    const w=new Array<number>(64).fill(0);
-    for(let i=0;i<16;i++) w[i]=((a[off+i*4]<<24)|(a[off+i*4+1]<<16)|(a[off+i*4+2]<<8)|a[off+i*4+3])>>>0;
-    for(let i=16;i<64;i++){const x=w[i-15],y=w[i-2];const s0=rotr(x,7)^rotr(x,18)^(x>>>3);const s1=rotr(y,17)^rotr(y,19)^(y>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;}
+  const bytes = input.slice();
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  for (let shift = 56; shift >= 0; shift -= 8) bytes.push(Math.floor(bitLen / 2 ** shift) & 0xff);
+
+  let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a;
+  let h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+
+  for(let off=0;off<bytes.length;off+=64){
+    const w = new Array<number>(64).fill(0);
+    for(let i=0;i<16;i++) {
+      const j=off+i*4;
+      w[i]=(((bytes[j]<<24)|(bytes[j+1]<<16)|(bytes[j+2]<<8)|bytes[j+3])>>>0);
+    }
+    for(let i=16;i<64;i++){
+      const x=w[i-15], y=w[i-2];
+      const s0=(rotr(x,7)^rotr(x,18)^(x>>>3))>>>0;
+      const s1=(rotr(y,17)^rotr(y,19)^(y>>>10))>>>0;
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
     let A=h0,B=h1,C=h2,D=h3,E=h4,F=h5,G=h6,H=h7;
-    for(let i=0;i<64;i++){const S1=rotr(E,6)^rotr(E,11)^rotr(E,25);const ch=(E&F)^(~E&G);const t1=(H+S1+ch+K256[i]+w[i])>>>0;const S0=rotr(A,2)^rotr(A,13)^rotr(A,22);const maj=(A&B)^(A&C)^(B&C);const t2=(S0+maj)>>>0;H=G;G=F;F=E;E=(D+t1)>>>0;D=C;C=B;B=A;A=(t1+t2)>>>0;}
-    h0=(h0+A)>>>0;h1=(h1+B)>>>0;h2=(h2+C)>>>0;h3=(h3+D)>>>0;h4=(h4+E)>>>0;h5=(h5+F)>>>0;h6=(h6+G)>>>0;h7=(h7+H)>>>0;
+    for(let i=0;i<64;i++){
+      const S1=(rotr(E,6)^rotr(E,11)^rotr(E,25))>>>0;
+      const ch=((E&F)^((~E)&G))>>>0;
+      const t1=(H+S1+ch+K256[i]+w[i])>>>0;
+      const S0=(rotr(A,2)^rotr(A,13)^rotr(A,22))>>>0;
+      const maj=((A&B)^(A&C)^(B&C))>>>0;
+      const t2=(S0+maj)>>>0;
+      H=G; G=F; F=E; E=(D+t1)>>>0;
+      D=C; C=B; B=A; A=(t1+t2)>>>0;
+    }
+    h0=(h0+A)>>>0; h1=(h1+B)>>>0; h2=(h2+C)>>>0; h3=(h3+D)>>>0;
+    h4=(h4+E)>>>0; h5=(h5+F)>>>0; h6=(h6+G)>>>0; h7=(h7+H)>>>0;
   }
   return [h0,h1,h2,h3,h4,h5,h6,h7].flatMap(n=>[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]);
 }
