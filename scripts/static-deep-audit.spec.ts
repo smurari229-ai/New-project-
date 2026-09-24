@@ -8,12 +8,13 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
   const localHmr400Responses = new Set<string>();
   const unexpected400Responses = new Set<string>();
   const expectedAi400Responses = new Set<string>();
+  const ai400Bodies: Promise<string>[] = [];
   page.on("response", async (response) => {
     if (response.status() === 400) {
       unexpected400Responses.add(response.url());
       if (response.url().endsWith("/api/ai/ask")) {
-        const body = await response.text().catch(() => "");
-        if (body.includes("No Gemini API key available")) expectedAi400Responses.add(response.url());
+        ai400Bodies.push(response.text().catch(() => ""));
+        expectedAi400Responses.add(response.url());
       }
     }
     if (response.status() === 400 && response.url().includes("127.0.0.1:24678")) {
@@ -89,5 +90,7 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
     }
   }
 
+  const ai400Results = await Promise.all(ai400Bodies);
+  expect(ai400Results.every((body) => body.includes("No Gemini API key available")), "AI 400 responses must be truthful missing-key errors").toBe(true);
   expect(errors, `Static tool runtime errors: ${errors.join(" | ")}; 400 responses: ${Array.from(unexpected400Responses).filter((url) => !expectedAi400Responses.has(url)).join(" | ")}`).toEqual([]);
 });
