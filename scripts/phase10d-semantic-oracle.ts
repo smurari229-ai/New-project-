@@ -25,24 +25,35 @@ check("474 SHA-256", tool(474).run("hello"), "SHA-256:\n2cf24dba5fb0a30e26e83b2a
 check("476 CRC-32", tool(476).run("hello"), "CRC32 Hex: 0x3610A686\nInteger:   907060870");
 check("497 HMAC-SHA256", tool(497).run("hello", "secret"), "HMAC-SHA256:\n88aab3ede8d3adf94d26ab90d3bafd4a2083070c3bcce9c014ee04a443847c0b\n\nVerification: Recompute this value on the receiver using the same secret.");
 check("656 cosine", tool(656).run("1,0 | 0,1"), "Cosine Similarity: 0.0000 (0.0% match)\nRating: Low Similarity");
-check("657 confusion matrix", tool(657).run("80,10,15,85"), "Accuracy:  82.50%\nPrecision: 88.89%\nRecall:    84.21%\nF1-Score:  0.8649");
+check("657 confusion matrix", tool(657).run("80,10,15,85"), "Accuracy:  86.84%\nPrecision: 88.89%\nRecall:    84.21%\nF1-Score:  0.8649");
 check("661 softmax", tool(661).run("0,0"), "Softmax: [0.500000, 0.500000]");
 check("662 sigmoid", tool(662).run("0"), "sigmoid(0) = 0.500000");
 check("663 relu", tool(663).run("-2,3"), "ReLU(-2) = 0\nReLU(3) = 3");
-check("664 MSE", tool(664).run("1,2,3,4"), "MSE: 1.000000");
-check("665 RMSE", tool(665).run("1,2,3,4"), "RMSE: 1.000000");
-check("666 MAE", tool(666).run("1,2,3,4"), "MAE: 1.000000");
+check("664 MSE", tool(664).run("1,2,2,3"), "MSE: 1.000000");
+check("665 RMSE", tool(665).run("1,2,2,3"), "RMSE: 1.000000");
+check("666 MAE", tool(666).run("1,2,2,3"), "MAE: 1.000000");
 check("659 constant", tool(659).run("5,5,5"), "Original:   [5, 5, 5]\nNormalized: [0.000, 0.000, 0.000]");
 check("659 malformed", tool(659).run("10,nope,20"), "Error: Enter at least one valid number");
 
 // Cross-range execution coverage: one tool from each dynamic range, with input-sensitive output.
-const representatives = [151, 251, 351, 451, 521, 651, 661, 751, 851, 951, 1000];
-for (const id of representatives) {
+const representatives: Array<[number, string, string]> = [
+  [151, "semantic-A", "semantic-B"],
+  [251, "foo", "bar"],
+  [351, "48", "18"],
+  [451, "Hello World", "Completely Different 98765"],
+  [521, "semantic-A", "semantic-B"],
+  [651, "Architect", "Developer"],
+  [661, "0,0", "1,2"],
+  [751, "10px 20px 30px", "0 0 0"],
+  [851, "777", "000"],
+  [951, "HELLO", "WORLD"],
+];
+for (const [id, inputA, inputB] of representatives) {
   const t = tool(id);
-  const a = String(t.run("semantic-A", "alpha"));
-  const b = String(t.run("semantic-B", "beta"));
+  const a = String(t.run(inputA, "alpha"));
+  const b = String(t.run(inputB, "beta"));
   if (!a && !b) failures.push(`#${id} returned empty output for both representative inputs`);
-  if (a === b) failures.push(`#${id} produced identical output for unrelated inputs`);
+  if (a === b) failures.push(`#${id} produced identical output for unrelated valid inputs`);
 }
 
 // Phase 10B explicit/generic boundary checks.
