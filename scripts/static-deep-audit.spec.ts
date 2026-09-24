@@ -7,9 +7,14 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
   const errors: string[] = [];
   const localHmr400Responses = new Set<string>();
   const unexpected400Responses = new Set<string>();
-  page.on("response", (response) => {
+  const expectedAi400Responses = new Set<string>();
+  page.on("response", async (response) => {
     if (response.status() === 400) {
       unexpected400Responses.add(response.url());
+      if (response.url().endsWith("/api/ai/ask")) {
+        const body = await response.text().catch(() => "");
+        if (body.includes("No Gemini API key available")) expectedAi400Responses.add(response.url());
+      }
     }
     if (response.status() === 400 && response.url().includes("127.0.0.1:24678")) {
       localHmr400Responses.add(response.url());
@@ -23,7 +28,9 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
         text.includes("ws://127.0.0.1:24678/") ||
         text.includes("Connecting to 'ws://127.0.0.1:24678") ||
         (text.includes("Failed to load resource: the server responded with a status of 400") &&
-          Array.from(localHmr400Responses).some((url) => url.includes("127.0.0.1:24678")));
+          Array.from(localHmr400Responses).some((url) => url.includes("127.0.0.1:24678")) ||
+          (text.includes("Failed to load resource: the server responded with a status of 400") &&
+            Array.from(expectedAi400Responses).some((url) => url.endsWith("/api/ai/ask"))));
       if (!isLocalHmrNoise) errors.push(`console: ${text}`);
     }
   });
@@ -82,5 +89,5 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
     }
   }
 
-  expect(errors, `Static tool runtime errors: ${errors.join(" | ")}; 400 responses: ${Array.from(unexpected400Responses).join(" | ")}`).toEqual([]);
+  expect(errors, `Static tool runtime errors: ${errors.join(" | ")}; 400 responses: ${Array.from(unexpected400Responses).filter((url) => !expectedAi400Responses.has(url)).join(" | ")}`).toEqual([]);
 });
