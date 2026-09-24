@@ -32,9 +32,16 @@ if (punycode) {
 const minMax = BATCH_6_DATA_AI_TOOLS.find((tool) => tool.id === 659);
 check("Tool 659 exists", Boolean(minMax), "missing");
 if (minMax) {
-  check("Min-max normal", minMax.run("10, 20, 35, 50, 90") === "Original:   [10, 20, 35, 50, 90]\nNormalized: [0.000, 0.250, 0.500, 0.750, 1.000]", minMax.run("10, 20, 35, 50, 90"));
+  check("Min-max normal", minMax.run("10, 20, 35, 50, 90") === "Original:   [10, 20, 35, 50, 90]\nNormalized: [0.000, 0.125, 0.313, 0.500, 1.000]", minMax.run("10, 20, 35, 50, 90"));
+  check("Min-max negative", minMax.run("-10, 0, 10") === "Original:   [-10, 0, 10]\nNormalized: [0.000, 0.500, 1.000]", minMax.run("-10, 0, 10"));
+  check("Min-max decimals", minMax.run("0.5, 1.0, 1.5") === "Original:   [0.5, 1, 1.5]\nNormalized: [0.000, 0.500, 1.000]", minMax.run("0.5, 1.0, 1.5"));
+  check("Min-max whitespace", minMax.run(" 10, 20 , 30 ") === "Original:   [10, 20, 30]\nNormalized: [0.000, 0.500, 1.000]", minMax.run(" 10, 20 , 30 "));
+  check("Min-max already normalized", minMax.run("0, 0.5, 1") === "Original:   [0, 0.5, 1]\nNormalized: [0.000, 0.500, 1.000]", minMax.run("0, 0.5, 1"));
   check("Min-max constant", minMax.run("5, 5, 5") === "Original:   [5, 5, 5]\nNormalized: [0.000, 0.000, 0.000]", minMax.run("5, 5, 5"));
+  check("Min-max single", minMax.run("42") === "Original:   [42]\nNormalized: [0.000]", minMax.run("42"));
   check("Min-max empty", minMax.run("   ") === "Error: Enter at least one valid number", minMax.run("   "));
+  check("Min-max malformed", minMax.run("10, nope, 20") === "Error: Enter at least one valid number", minMax.run("10, nope, 20"));
+  check("Min-max large safe", minMax.run("1000000000, 2000000000") === "Original:   [1000000000, 2000000000]\nNormalized: [0.000, 1.000]", minMax.run("1000000000, 2000000000"));
 }
 
 
