@@ -1046,7 +1046,63 @@ export const BATCH_2_CONVERTER_TOOLS: DynamicTool[] = [
     inputType: "text",
     default1: "xn--mnchen-3ya.de",
     run: (v) => {
-      return `Decoded Domain: münchen.de (simulated IDN representation)`;
+      const decodeLabel = (label: string): string => {
+        if (!label.toLowerCase().startsWith("xn--")) return label;
+        const input = label.slice(4).toLowerCase();
+        if (!input) throw new Error("Invalid Punycode");
+        const output = Array.from(input);
+        const basic = input.lastIndexOf("-");
+        let index = basic < 0 ? 0 : basic + 1;
+        let n = 128;
+        let bias = 72;
+        let i = 0;
+        const decodeDigit = (code: number) =>
+          code >= 48 && code <= 57 ? code - 22 : code >= 65 && code <= 90 ? code - 65 : code >= 97 && code <= 122 ? code - 97 : -1;
+        const adapt = (delta: number, points: number, first: boolean) => {
+          delta = first ? Math.floor(delta / 700) : Math.floor(delta / 2);
+          delta += Math.floor(delta / points);
+          let k = 0;
+          while (delta > 455) {
+            delta = Math.floor(delta / 35);
+            k += 36;
+          }
+          return k + Math.floor((36 * delta) / (delta + 38));
+        };
+        const chars = basic < 0 ? [] : input.slice(0, basic).split("");
+        while (index < input.length) {
+          const oldI = i;
+          let w = 1;
+          for (let k = 36; ; k += 36) {
+            if (index >= input.length) throw new Error("Invalid Punycode");
+            const digit = decodeDigit(input.charCodeAt(index++));
+            if (digit < 0) throw new Error("Invalid Punycode");
+            i += digit * w;
+            const t = k <= bias ? 1 : k >= bias + 26 ? 26 : k - bias;
+            if (digit < t) break;
+            w *= 36 - t;
+            if (w > 0x7fffffff) throw new Error("Invalid Punycode");
+          }
+          const outLen = chars.length + 1;
+          bias = adapt(i - oldI, outLen, oldI === 0);
+          n += Math.floor(i / outLen);
+          i %= outLen;
+          chars.splice(i, 0, String.fromCodePoint(n));
+          i++;
+        }
+        return chars.join("");
+      };
+
+      try {
+        const domain = v.trim();
+        if (!domain) return "Error: Domain is required";
+        if (domain.length > 253) return "Error: Domain is too long";
+        const labels = domain.split(".");
+        if (labels.some((label) => !label || label.length > 63)) return "Error: Invalid Punycode/IDN domain";
+        const decoded = labels.map((label) => decodeLabel(label)).join(".");
+        return `Decoded Domain: ${decoded}`;
+      } catch {
+        return "Error: Invalid Punycode/IDN domain";
+      }
     },
   },
   {

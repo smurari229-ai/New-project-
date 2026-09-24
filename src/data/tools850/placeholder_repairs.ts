@@ -3,10 +3,7 @@ import { DynamicTool } from "./definitions";
 const PLACEHOLDER_RANGES: Array<[number, number]> = [
   // Batch 4 and Batch 6 still contain legacy generic-result runners in these ranges.
   // Keep the repair at the shared layer so affected tools receive title-specific output.
-  [451, 520],
   [521, 550],
-  [551, 560],
-  [651, 660],
   [561, 650],
   [661, 750],
   [761, 850],
@@ -110,7 +107,7 @@ const repairedRun = (title: string, value: string) => {
   }
   if (t.includes("sigmoid") && ns.length) return ns.map((x) => `sigmoid(${x}) = ${(1 / (1 + Math.exp(-x))).toFixed(6)}`).join("\n");
   if (t.includes("relu") && ns.length) return ns.map((x) => `ReLU(${x}) = ${Math.max(0, x)}`).join("\n");
-  if (t.includes("mean squared error") && ns.length >= 2) {
+  if (t.includes("mean squared error") && !t.includes("root mean squared error") && ns.length >= 2) {
     const half = Math.floor(ns.length / 2); const a = ns.slice(0, half); const b = ns.slice(half, half * 2);
     const mse = a.reduce((s, x, i) => s + (x - b[i]) ** 2, 0) / a.length;
     return `MSE: ${mse.toFixed(6)}`;
