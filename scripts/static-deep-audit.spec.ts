@@ -43,7 +43,14 @@ test("static tool 1 plus tools 2-150 exhaustive control and edge-input smoke", a
 
       if (["checkbox", "radio", "color", "range", "date", "datetime-local", "time", "file"].includes(type || "")) continue;
 
-      for (const sample of TEXT_CASES) {
+      const cardText = (await card.innerText()).toLowerCase();
+      const samples = cardText.includes("binary")
+        ? ["01001000 01101001"]
+        : cardText.includes("hexadecimal") || /\bhex\b/.test(cardText)
+          ? ["48656c6c6f"]
+          : TEXT_CASES;
+
+      for (const sample of samples) {
         const value = type === "number" ? (sample.trim() ? "2" : "0") : sample;
         await control.fill(value);
       }
