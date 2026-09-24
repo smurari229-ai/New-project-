@@ -13,54 +13,75 @@ const K256 = [
   0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2,
 ];
 function sha256Bytes(input: number[]): number[] {
-  const mask = 0xffffffffn;
-  const rotateRight = (x: bigint, n: number) =>
-    ((x >> BigInt(n)) | (x << BigInt(32 - n))) & mask;
-  const bytes = input.slice();
-  const bitLength = BigInt(bytes.length * 8);
-  bytes.push(0x80);
-  while (bytes.length % 64 !== 56) bytes.push(0);
-  for (let shift = 56; shift >= 0; shift -= 8) {
-    bytes.push(Number((bitLength >> BigInt(shift)) & 0xffn));
-  }
+  const byteLength = input.length;
+  const padLength = byteLength % 64 < 56 ? 64 : 128;
+  const padded = input.slice();
+  padded.push(0x80);
+  while (padded.length < byteLength + padLength - 8) padded.push(0);
 
-  const K = K256.map((value) => BigInt(value >>> 0));
-  let h = [
-    0x6a09e667n, 0xbb67ae85n, 0x3c6ef372n, 0xa54ff53an,
-    0x510e527fn, 0x9b05688cn, 0x1f83d9abn, 0x5be0cd19n,
-  ];
+  const bitLengthHigh = Math.floor(byteLength / 0x20000000);
+  const bitLengthLow = byteLength << 3;
+  padded.push(
+    (bitLengthHigh >>> 24) & 0xff,
+    (bitLengthHigh >>> 16) & 0xff,
+    (bitLengthHigh >>> 8) & 0xff,
+    bitLengthHigh & 0xff,
+    (bitLengthLow >>> 24) & 0xff,
+    (bitLengthLow >>> 16) & 0xff,
+    (bitLengthLow >>> 8) & 0xff,
+    bitLengthLow & 0xff,
+  );
 
-  for (let off = 0; off < bytes.length; off += 64) {
-    const w = new Array<bigint>(64).fill(0n);
+  const state = new Int32Array([
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+  ]);
+  const words = new Int32Array(64);
+
+  for (let offset = 0; offset < padded.length; offset += 64) {
+    let [a, b, c, d, e, f, g, h] = state;
+
     for (let i = 0; i < 16; i++) {
-      const j = off + i * 4;
-      w[i] = BigInt((bytes[j] << 24) | (bytes[j + 1] << 16) | (bytes[j + 2] << 8) | bytes[j + 3]) & mask;
+      const j = offset + i * 4;
+      words[i] = ((padded[j] & 0xff) << 24) |
+        ((padded[j + 1] & 0xff) << 16) |
+        ((padded[j + 2] & 0xff) << 8) |
+        (padded[j + 3] & 0xff);
     }
+
     for (let i = 16; i < 64; i++) {
-      const x = w[i - 15], y = w[i - 2];
-      const s0 = rotateRight(x, 7) ^ rotateRight(x, 18) ^ (x >> 3n);
-      const s1 = rotateRight(y, 17) ^ rotateRight(y, 19) ^ (y >> 10n);
-      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) & mask;
+      let u = words[i - 2];
+      const s1 = (u >>> 17 | u << 15) ^ (u >>> 19 | u << 13) ^ (u >>> 10);
+      u = words[i - 15];
+      const s0 = (u >>> 7 | u << 25) ^ (u >>> 18 | u << 14) ^ (u >>> 3);
+      words[i] = (s1 + words[i - 7] | 0) + (s0 + words[i - 16] | 0);
     }
 
-    let [A, B, C, D, E, F, G, H] = h;
     for (let i = 0; i < 64; i++) {
-      const S1 = rotateRight(E, 6) ^ rotateRight(E, 11) ^ rotateRight(E, 25);
-      const ch = (E & F) ^ ((~E) & G);
-      const t1 = (H + S1 + ch + K[i] + w[i]) & mask;
-      const S0 = rotateRight(A, 2) ^ rotateRight(A, 13) ^ rotateRight(A, 22);
-      const maj = (A & B) ^ (A & C) ^ (B & C);
-      const t2 = (S0 + maj) & mask;
-      H = G; G = F; F = E; E = (D + t1) & mask;
-      D = C; C = B; B = A; A = (t1 + t2) & mask;
+      const s1 = (e >>> 6 | e << 26) ^ (e >>> 11 | e << 21) ^ (e >>> 25 | e << 7);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (((s1 + ch) | 0) + (h + ((K256[i] + words[i]) | 0) | 0)) | 0;
+      const s0 = (a >>> 2 | a << 30) ^ (a >>> 13 | a << 19) ^ (a >>> 22 | a << 10);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (s0 + maj) | 0;
+
+      h = g; g = f; f = e; e = (d + t1) | 0;
+      d = c; c = b; b = a; a = (t1 + t2) | 0;
     }
 
-    h = h.map((value, index) => (value + [A, B, C, D, E, F, G, H][index]) & mask);
+    state[0] = (state[0] + a) | 0;
+    state[1] = (state[1] + b) | 0;
+    state[2] = (state[2] + c) | 0;
+    state[3] = (state[3] + d) | 0;
+    state[4] = (state[4] + e) | 0;
+    state[5] = (state[5] + f) | 0;
+    state[6] = (state[6] + g) | 0;
+    state[7] = (state[7] + h) | 0;
   }
 
-  return h.flatMap((value) => {
-    const n = Number(value);
-    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
+  return Array.from(state).flatMap((value) => {
+    const n = value >>> 0;
+    return [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
   });
 }
 function hex(bytes:number[]){return bytes.map(b=>b.toString(16).padStart(2,"0")).join("");}
