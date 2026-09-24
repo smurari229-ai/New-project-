@@ -14,22 +14,16 @@ const K256 = [
 ];
 function sha256Bytes(input: number[]): number[] {
   const byteLength = input.length;
-  const padLength = byteLength % 64 < 56 ? 64 : 128;
   const padded = input.slice();
   padded.push(0x80);
   while (padded.length % 64 !== 56) padded.push(0);
-
   const bitLengthHigh = Math.floor(byteLength / 0x20000000);
   const bitLengthLow = byteLength << 3;
   padded.push(
-    (bitLengthHigh >>> 24) & 0xff,
-    (bitLengthHigh >>> 16) & 0xff,
-    (bitLengthHigh >>> 8) & 0xff,
-    bitLengthHigh & 0xff,
-    (bitLengthLow >>> 24) & 0xff,
-    (bitLengthLow >>> 16) & 0xff,
-    (bitLengthLow >>> 8) & 0xff,
-    bitLengthLow & 0xff,
+    (bitLengthHigh >>> 24) & 0xff, (bitLengthHigh >>> 16) & 0xff,
+    (bitLengthHigh >>> 8) & 0xff, bitLengthHigh & 0xff,
+    (bitLengthLow >>> 24) & 0xff, (bitLengthLow >>> 16) & 0xff,
+    (bitLengthLow >>> 8) & 0xff, bitLengthLow & 0xff,
   );
 
   const state = new Int32Array([
@@ -39,7 +33,8 @@ function sha256Bytes(input: number[]): number[] {
   const words = new Int32Array(64);
 
   for (let offset = 0; offset < padded.length; offset += 64) {
-    let [a, b, c, d, e, f, g, h] = state;
+    let a = state[0], b = state[1], c = state[2], d = state[3];
+    let e = state[4], f = state[5], g = state[6], h = state[7];
 
     for (let i = 0; i < 16; i++) {
       const j = offset + i * 4;
@@ -69,14 +64,10 @@ function sha256Bytes(input: number[]): number[] {
       d = c; c = b; b = a; a = (t1 + t2) | 0;
     }
 
-    state[0] = (state[0] + a) | 0;
-    state[1] = (state[1] + b) | 0;
-    state[2] = (state[2] + c) | 0;
-    state[3] = (state[3] + d) | 0;
-    state[4] = (state[4] + e) | 0;
-    state[5] = (state[5] + f) | 0;
-    state[6] = (state[6] + g) | 0;
-    state[7] = (state[7] + h) | 0;
+    state[0] = (state[0] + a) | 0; state[1] = (state[1] + b) | 0;
+    state[2] = (state[2] + c) | 0; state[3] = (state[3] + d) | 0;
+    state[4] = (state[4] + e) | 0; state[5] = (state[5] + f) | 0;
+    state[6] = (state[6] + g) | 0; state[7] = (state[7] + h) | 0;
   }
 
   return Array.from(state).flatMap((value) => {
