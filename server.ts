@@ -199,12 +199,8 @@ async function startServer() {
       const { prompt, history = [], language = "javascript", customApiKey } = req.body || {};
       const validationError = validateApiInput(prompt, customApiKey, MAX_PROMPT_LENGTH);
       if (validationError) return res.status(400).json({ error: validationError });
-      if (
-        typeof language !== "string" ||
-        language.length > 100 ||
-        !SUPPORTED_SIMULATED_LANGUAGES.has(language.trim())
-      ) {
-        return res.status(400).json({ error: "Language is not supported by the advertised editor catalog." });
+      if (typeof language !== "string" || language.length > 100) {
+        return res.status(400).json({ error: "Language value is invalid" });
       }
 
       const apiKey =
@@ -299,8 +295,12 @@ Your goal:
       const { language = "text", code, customApiKey } = req.body || {};
       const validationError = validateApiInput(code, customApiKey, MAX_CODE_LENGTH);
       if (validationError) return res.status(400).json({ error: validationError });
-      if (typeof language !== "string" || language.length > 100) {
-        return res.status(400).json({ error: "Language value is invalid" });
+      if (
+        typeof language !== "string" ||
+        language.length > 100 ||
+        !SUPPORTED_SIMULATED_LANGUAGES.has(language.trim())
+      ) {
+        return res.status(400).json({ error: "Language is not supported by the advertised editor catalog." });
       }
 
       const apiKey =
