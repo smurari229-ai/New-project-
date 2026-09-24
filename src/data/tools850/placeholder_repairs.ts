@@ -5,6 +5,7 @@ const PLACEHOLDER_RANGES: Array<[number, number]> = [
   // Keep the repair at the shared layer so affected tools receive title-specific output.
   [451, 520],
   [521, 550],
+  [551, 560],
   [651, 660],
   [561, 650],
   [661, 750],
