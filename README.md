@@ -1,12 +1,12 @@
 # Coding Super Hub 🚀
 
-An all-in-one developer workspace featuring **1,000 interactive developer tools**, a **multi-language code runner**, an **AI coding copilot powered by Gemini**, and source export utilities with architecture and source-code documentation.
+An all-in-one developer workspace featuring **1,000 cataloged developer utilities (including production-ready utilities, references, demos, and AI-assisted helpers)**, a **multi-language virtual execution workspace**, an **AI coding copilot powered by Gemini**, and source export utilities with architecture and source-code documentation.
 
 ---
 
 ## ✨ Features
 
-- **🛠️ 1,000 Interactive Developer Tools:**
+- **🛠️ 1,000 Cataloged Developer Utilities:**
   - **Text & Formatting:** JSON Formatter/Validator, Base64 Encoder/Decoder, URL Encoder/Decoder, Markdown Previewer, Regex Tester, Slug Generator, Text Diff Checker, Case Converters, and more.
   - **Security & Cryptography:** SHA-256 / SHA-512 / MD5-related tools, UUID v4 Generator, HMAC tools, AES-related utilities, RSA/JWK templates, JWT Token Decoder, and security references. Some security-heavy tools are explicitly labeled as demos/templates where a full standards-compliant implementation or live inspection is not available in the browser.
   - **Math & Calculators:** Unit Converters, Binary/Hex/Octal Number Base Converter, Timestamp/Epoch Converter, Percentage Calculator, Aspect Ratio Calculator.
