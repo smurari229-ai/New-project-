@@ -1,13 +1,13 @@
-import React, { Suspense, useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Navbar } from "./components/Navbar";
 import { CodeEditor } from "./components/CodeEditor";
 import { AIAssistant } from "./components/AIAssistant";
 import { LanguageHub } from "./components/LanguageHub";
 import { ShortcutsModal } from "./components/ShortcutsModal";
-const ToolsTextFormat = React.lazy(() => import("./components/tools/ToolsTextFormat").then((m) => ({ default: m.ToolsTextFormat })));
-const ToolsMathCalculators = React.lazy(() => import("./components/tools/ToolsMathCalculators").then((m) => ({ default: m.ToolsMathCalculators })));
-const ToolsDataWeb = React.lazy(() => import("./components/tools/ToolsDataWeb").then((m) => ({ default: m.ToolsDataWeb })));
-const ToolsAdvancedDev = React.lazy(() => import("./components/tools/ToolsAdvancedDev").then((m) => ({ default: m.ToolsAdvancedDev })));
+import { ToolsTextFormat } from "./components/tools/ToolsTextFormat";
+import { ToolsMathCalculators } from "./components/tools/ToolsMathCalculators";
+import { ToolsDataWeb } from "./components/tools/ToolsDataWeb";
+import { ToolsAdvancedDev } from "./components/tools/ToolsAdvancedDev";
 import { DynamicToolsRenderer } from "./components/tools/DynamicToolsRenderer";
 import { ToolCategory } from "./types";
 import { safeStorageGet, safeStorageSet } from "./utils/helpers";
@@ -470,27 +470,31 @@ export default function App() {
             </div>
           ) : (
             <div className="space-y-6">
-              <Suspense
-                fallback={
-                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 text-center">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Preparing the core tool modules…</p>
-                  </div>
-                }
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {/* Tools 2 - 20 (Text, Formatting, Conversion, Hashes) */}
-                  <ToolsTextFormat searchQuery={searchQuery} selectedCategory={selectedCategory} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {/* Tools 2 - 20 (Text, Formatting, Conversion, Hashes) */}
+                <ToolsTextFormat
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-                  {/* Tools 21 - 50 (Math, Calculations, Financial, Conversion) */}
-                  <ToolsMathCalculators searchQuery={searchQuery} selectedCategory={selectedCategory} />
+                {/* Tools 21 - 50 (Math, Calculations, Financial, Conversion) */}
+                <ToolsMathCalculators
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-                  {/* Tools 51 - 100 (Data, Web, CSS, JSON, SEO, Dev Cheat Sheets) */}
-                  <ToolsDataWeb searchQuery={searchQuery} selectedCategory={selectedCategory} />
+                {/* Tools 51 - 100 (Data, Web, CSS, JSON, SEO, Dev Cheat Sheets) */}
+                <ToolsDataWeb
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
 
-                  {/* Tools 101 - 150 (Diff, Ciphers, Advanced Crypto, Modern CSS & JS Snippets) */}
-                  <ToolsAdvancedDev searchQuery={searchQuery} selectedCategory={selectedCategory} />
-                </div>
-              </Suspense>
+                {/* Tools 101 - 150 (Diff, Ciphers, Advanced Crypto, Modern CSS & JS Snippets) */}
+                <ToolsAdvancedDev
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                />
+              </div>
 
               {/* Tools 151 - 1000 (850 New Interactive Developer Tools) */}
               <DynamicToolsRenderer
