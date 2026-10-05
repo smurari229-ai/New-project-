@@ -9,11 +9,12 @@ function getHeader(req, name) {
 }
 
 export function getClientIp(req) {
+  const trustedIp = req?.ip;
   const forwarded = getHeader(req, "x-forwarded-for");
   const realIp = getHeader(req, "x-real-ip");
   const remote = req?.socket?.remoteAddress;
 
-  return String(forwarded || realIp || remote || "unknown")
+  return String(trustedIp || forwarded || realIp || remote || "unknown")
     .split(",")[0]
     .trim() || "unknown";
 }
