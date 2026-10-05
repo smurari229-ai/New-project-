@@ -4,8 +4,10 @@ const forbidden = [
   "Verified active in 1000 Tools SuperHub",
   "Ready for deployment.",
   "Ready for production runtime.",
+  "Ready in production runtime.",
   "Generated starter output:",
   "Reference result:\nThis title has a dedicated result path",
+  "Processed query:",
 ];
 
 const casesFor = (tool: (typeof ALL_850_TOOLS)[number]) => {
@@ -29,8 +31,6 @@ for (const tool of ALL_850_TOOLS) {
     executions += 1;
     try {
       const output = String(tool.run(a, b));
-      // Empty output can be semantically correct for transforms such as
-      // removing characters/lines from empty input; quality is covered separately.
       for (const marker of forbidden) {
         if (output.includes(marker)) failures.push(`#${tool.id} ${tool.title}: forbidden generic output ${marker}`);
       }
