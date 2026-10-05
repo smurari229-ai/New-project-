@@ -1,4 +1,5 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
+import { sanitizeCustomApiKey } from "../_lib/security.js";
 
 const MAX_PROMPT_LENGTH = 20_000;
 const MAX_LANGUAGE_LENGTH = 100;
@@ -35,7 +36,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Language value is invalid" });
     }
 
-    const apiKey = getApiKey(customApiKey);
+    const sanitizedCustomApiKey = sanitizeCustomApiKey(customApiKey);
+    if (customApiKey !== undefined && customApiKey !== null && customApiKey !== "" && !sanitizedCustomApiKey) {
+      return res.status(400).json({ error: "Custom API key is invalid" });
+    }
+
+    const apiKey = getApiKey(sanitizedCustomApiKey);
     if (!apiKey) {
       return res.status(400).json({
         error: "No Gemini API key available. Please configure GEMINI_API_KEY in the environment or provide a key in the AI Assistant panel.",
