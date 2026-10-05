@@ -1,4 +1,5 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
+import { sanitizeCustomApiKey } from "../_lib/security.js";
 
 const MAX_OUTPUT_LENGTH = 40_000;
 const SUPPORTED_SIMULATED_LANGUAGES = new Set([
@@ -89,7 +90,12 @@ export default async function handler(req, res) {
       });
     }
 
-    const apiKey = getApiKey(customApiKey);
+    const sanitizedCustomApiKey = sanitizeCustomApiKey(customApiKey);
+    if (customApiKey !== undefined && customApiKey !== null && customApiKey !== "" && !sanitizedCustomApiKey) {
+      return res.status(400).json({ error: "Custom API key is invalid" });
+    }
+
+    const apiKey = getApiKey(sanitizedCustomApiKey);
     if (!apiKey) {
       return res.status(400).json({
         stdout: "",
