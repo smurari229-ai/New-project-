@@ -255,7 +255,12 @@ Your goal:
       const text = String(response.text || "No response generated.").slice(0, MAX_OUTPUT_LENGTH);
       return res.json({ answer: text, modelUsed });
     } catch (error: any) {
-      console.error("Gemini API error:", error);
+      const errorInfo = getGeminiErrorInfo(error);
+      console.error("[Gemini API] request failed", {
+        status: errorInfo.status || "unknown",
+        quota: isQuotaError(error),
+        transient: isTransientError(error),
+      });
       const isHighDemand = isTransientError(error);
       const isQuota = isQuotaError(error);
       const userMessage = isQuota
@@ -382,7 +387,12 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
 
       return res.json(parsed);
     } catch (error: any) {
-      console.error("Code runner API error:", error);
+      const errorInfo = getGeminiErrorInfo(error);
+      console.error("[Code Runner] request failed", {
+        status: errorInfo.status || "unknown",
+        quota: isQuotaError(error),
+        transient: isTransientError(error),
+      });
       return res.status(500).json({
         stdout: "",
         stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
