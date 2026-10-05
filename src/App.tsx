@@ -318,7 +318,7 @@ export default function App() {
             <CodeEditor
               onSendToAI={handleSendCodeToAI}
               initialLanguage={activeLanguage}
-        customApiKey={customApiKey}
+              customApiKey={customApiKey}
               selectedLanguage={activeLanguage}
               onLanguageChange={setActiveLanguage}
               registerActiveCodeGetter={(fn) => {
@@ -348,6 +348,8 @@ export default function App() {
                   code: activeCode,
                 }
               }
+              customApiKey={customApiKey}
+              onCustomApiKeyChange={setCustomApiKey}
             />
           </div>
         </div>
