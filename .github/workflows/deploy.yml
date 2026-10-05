@@ -1,4 +1,4 @@
-name: Build Check
+name: CI
 
 on:
   push:
@@ -31,6 +31,15 @@ jobs:
 
       - name: TypeScript check
         run: npm run lint
+
+      - name: Unit and security tests
+        run: npm run test
+
+      - name: Unit test coverage
+        run: npm run test:coverage
+
+      - name: Security policy regression check
+        run: npm run test:security
 
       - name: Tool source integrity
         run: node scripts/verify-tools.mjs
