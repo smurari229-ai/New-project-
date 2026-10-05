@@ -24,6 +24,8 @@ interface AIAssistantProps {
   currentCode?: string;
   getActiveCode?: () => { tab: string; code: string };
   onApplyCodeToEditor?: (tab: string, code: string) => void;
+  customApiKey?: string;
+  onCustomApiKeyChange?: (key: string) => void;
 }
 
 export const AIAssistant: React.FC<AIAssistantProps> = ({
@@ -32,11 +34,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   currentCode = "",
   getActiveCode,
   onApplyCodeToEditor,
+  customApiKey,
+  onCustomApiKeyChange,
 }) => {
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [customKey, setCustomKey] = useState("");
+  const [customKey, setCustomKey] = useState(customApiKey || "");
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [showKeyText, setShowKeyText] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>(
@@ -92,9 +96,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
   const saveKey = (val: string) => {
     setCustomKey(val);
+    onCustomApiKeyChange?.(val);
     setStatusMsg(
       val.trim()
-        ? "Custom Gemini key is held in memory only for this session."
+        ? "Custom Gemini key is held in memory only for this session and shared with the virtual runner."
         : "Using default server-side Gemini configuration."
     );
   };
