@@ -39,7 +39,6 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("intersection observer")) return `const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) entry.target.setAttribute("data-visible", "true"); }));\ndocument.querySelectorAll("[data-lazy]").forEach((el) => observer.observe(el));`;
   if (t.includes("resize observer")) return `const observer = new ResizeObserver((entries) => entries.forEach((entry) => console.log(entry.contentRect.width)));\nobserver.observe(document.querySelector(".container")!);`;
   if (t.includes("mutation observer")) return `const observer = new MutationObserver((mutations) => console.log(mutations.length));\nobserver.observe(document.body, { childList: true, subtree: true });`;
-
   if (t.includes("bleu")) return `BLEU evaluates n-gram precision with a brevity penalty. For a real score, supply candidate and reference translations; sample candidate: ${v}.`;
   if (t.includes("rouge-1")) return `ROUGE-1 = unigram overlap recall/precision/F1. Candidate: ${v}.`;
   if (t.includes("perplexity")) { const p=n[0] || 10; return `Perplexity: ${p}\nCross-entropy (natural log): ${Math.log(p).toFixed(6)}`; }
@@ -77,7 +76,6 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("parquet")) return `Row-group sizing guideline: keep groups large enough for sequential IO but small enough for predicate pruning. Input target: ${n[0]||128} MB.`;
   if (t.includes("protobuf")) return `message ${slug(v)} {\n  string value = 1;\n}`;
   if (t.includes("rabbitmq")) return `RabbitMQ rate estimate: ${n[0]||100} messages/s producer, ${n[1]||100} messages/s consumer → ${Math.min(n[0]||100,n[1]||100)} messages/s sustainable rate.`;
-
   if (t.includes("graph adjacency")) return `Adjacency-list conversion: parse each matrix row and emit neighbors for non-zero entries. Input: ${v}`;
   if (t.includes("dijkstra")) return `Dijkstra trace: initialize source distance 0, repeatedly choose the unvisited node with the smallest distance, then relax its outgoing edges. Input: ${v}`;
   if (t.includes("breadth-first") || t.includes("bfs")) return `BFS trace: enqueue the start node, visit it, then enqueue each unvisited neighbor level by level. Input: ${v}`;
@@ -100,13 +98,12 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("jitter buffer")) return `Jitter-buffer target should cover observed packet-delay variation. Suggested starting buffer: ${n[0]||50} ms.`;
   if (t.includes("dns ttl")) return `TTL ${n[0]||300}s means caches may retain the record for about ${(n[0]||300)/60} minutes.`;
   if (t.includes("cdn") && t.includes("hit ratio")) return `CDN hit ratio: ${n[0]||90}%. Higher hit ratio generally reduces origin load and origin latency.`;
-
   if (t.includes("audio file duration")) return `Duration = samples / sample rate. ${n[0]||441000} samples at ${n[1]||44100} Hz = ${((n[0]||441000)/(n[1]||44100)).toFixed(3)} s.`;
-  if (t.includes("wav header")) return `Canonical PCM WAV header is 44 bytes before audio data for the common RIFF/WAVE PCM layout.`;
+  if (t.includes("wav header")) return "Canonical PCM WAV header is 44 bytes before audio data for the common RIFF/WAVE PCM layout.";
   if (t.includes("mp3 bitrate")) return `Estimated size ≈ bitrate × duration. Bitrate: ${n[0]||192} kbps.`;
   if (t.includes("wavelength")) return `λ = c/f. At 343 m/s and ${n[0]||440} Hz, wavelength ≈ ${(343/(n[0]||440)).toFixed(4)} m.`;
   if (t.includes("adsr")) return `ADSR envelope: Attack ${n[0]||10}ms, Decay ${n[1]||100}ms, Sustain ${n[2]||0.7}, Release ${n[3]||200}ms.`;
-  if (t.includes("noise") && t.includes("spectral")) return `White noise is approximately flat in power spectral density; pink noise is approximately -3 dB/octave.`;
+  if (t.includes("noise") && t.includes("spectral")) return "White noise is approximately flat in power spectral density; pink noise is approximately -3 dB/octave.";
   if (t.includes("lfo rate")) return `LFO rate ${n[0]||2} Hz gives a cycle of ${(1000/(n[0]||2)).toFixed(2)} ms.`;
   if (t.includes("guitar standard tuning")) return "Standard guitar tuning: E2 82.41 Hz, A2 110.00 Hz, D3 146.83 Hz, G3 196.00 Hz, B3 246.94 Hz, E4 329.63 Hz.";
   if (t.includes("bass guitar")) return "4-string bass standard tuning: E1 41.20 Hz, A1 55.00 Hz, D2 73.42 Hz, G2 98.00 Hz.";
@@ -115,7 +112,6 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("stereo panning")) return "Equal-power panning commonly uses a -3 dB center law; alternative -4.5/-6 dB laws change center attenuation.";
   if (t.includes("crest factor")) return `Crest factor = peak / RMS. Input peak ${n[0]||1}, RMS ${n[1]||0.7} → ${((n[0]||1)/(n[1]||0.7)).toFixed(3)}.`;
   if (t.includes("lufs")) return "Common integrated loudness targets: around -14 LUFS for many streaming workflows; use the destination platform's current delivery specification.";
-
   if (t.includes("arc angle")) return `Canvas arc angles are radians. ${n[0]||0}° = ${(((n[0]||0)*Math.PI)/180).toFixed(6)} rad.`;
   if (t.includes("drawimage")) return `drawImage scaling ratio = destination width / source width. Source: ${n[0]||800}×${n[1]||600}, destination: ${n[2]||400}×${n[3]||300}.`;
   if (t.includes("golden canon")) return "Golden ratio φ ≈ 1.618034; a layout using this ratio can divide width into major/minor regions of roughly 61.8% and 38.2%.";
@@ -127,14 +123,14 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("prefers-contrast")) return `@media (prefers-contrast: more) { .component { outline: 2px solid currentColor; } }`;
   if (t.includes("print stylesheet")) return `@media print { nav, button, .no-print { display: none !important; } body { color: #000; background: #fff; } }`;
   if (t.includes("high resolution")) return `@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) { .icon { image-rendering: auto; } }`;
-
   if (t.includes("sudoers")) return `# Prefer a narrowly scoped command and validate with visudo.\n${v} ALL=(ALL) NOPASSWD: /usr/bin/${slug(v)}`;
   if (t.includes("netstat") || t.includes("socket state")) return "ss -tulpn";
   if (t.includes("elasticsearch")) return `PUT /${slug(v)}\n{ "mappings": { "properties": { "createdAt": { "type": "date" }, "value": { "type": "keyword" } } } }`;
   if (t.includes("kibana")) return `# ${title}\nExport/import dashboards through Kibana's Saved Objects API or UI; preserve index-pattern/data-view dependencies.`;
   if (t.includes("alertmanager")) return `groups:\n  - name: ${slug(v)}\n    rules:\n      - alert: HighErrorRate\n        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05`;
   if (t.includes("new relic")) return `NEW_RELIC_APP_NAME=${slug(v)}\nNEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true`;
-  if (t.includes("imdsv2")) return "TOKEN=$(curl -X PUT -s http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')\ncurl -s -H \"X-aws-ec2-metadata-token: $TOKEN\" http://169.254.169.254/latest/meta-data/";
+  if (t.includes("imdsv2")) return "TOKEN=$(curl -X PUT -s http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')
+curl -s -H \"X-aws-ec2-metadata-token: $TOKEN\" http://169.254.169.254/latest/meta-data/";
   if (t.includes("cloudwatch") && t.includes("metric filter")) return `aws logs put-metric-filter --filter-name ${slug(v)} --filter-pattern 'ERROR' --metric-transformations metricName=${slug(v)},metricNamespace=App,metricValue=1`;
   if (t.includes("cloudfront")) return "aws cloudfront create-invalidation --distribution-id DISTRIBUTION_ID --paths '/*'";
   if (t.includes("route53")) return "aws route53 change-resource-record-sets --hosted-zone-id ZONE_ID --change-batch file://change-batch.json";
@@ -152,7 +148,6 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("smtp")) return "SMTP submission: port 587 with STARTTLS is the common submission choice; port 465 is implicit TLS.";
   if (t.includes("imap")) return "IMAP over implicit TLS commonly uses port 993.";
   if (t.includes("pop3")) return "POP3 over implicit TLS commonly uses port 995.";
-
   return `# ${title}\nInput: ${v}\nResult: generated from the tool's named operation using the supplied input.`;
 }
 
@@ -160,7 +155,13 @@ export function enhanceGenericDynamicToolV2(tool: DynamicTool): DynamicTool {
   const originalRun = tool.run;
   return { ...tool, run: (value: string, value2?: string) => {
     const original = String(originalRun(value, value2));
-    if (!original.includes("Generated starter output:") && !original.includes("Reference result:\nThis title has a dedicated result path")) return original;
+    const genericMarkers = [
+      "Generated starter output:",
+      "Reference result:\nThis title has a dedicated result path",
+      "Ready in production runtime.",
+      "Processed query:"
+    ];
+    if (!genericMarkers.some((marker) => original.includes(marker))) return original;
     return deepResult(tool.title, value, value2);
   }};
 }
