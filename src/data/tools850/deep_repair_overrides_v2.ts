@@ -130,7 +130,6 @@ function deepResult(title: string, value: string, second = "") {
   if (t.includes("alertmanager")) return `groups:\n  - name: ${slug(v)}\n    rules:\n      - alert: HighErrorRate\n        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05`;
   if (t.includes("new relic")) return `NEW_RELIC_APP_NAME=${slug(v)}\nNEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true`;
   if (t.includes("imdsv2")) return `TOKEN=$(curl -X PUT -s http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600')\ncurl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/`;
-curl -s -H \"X-aws-ec2-metadata-token: $TOKEN\" http://169.254.169.254/latest/meta-data/";
   if (t.includes("cloudwatch") && t.includes("metric filter")) return `aws logs put-metric-filter --filter-name ${slug(v)} --filter-pattern 'ERROR' --metric-transformations metricName=${slug(v)},metricNamespace=App,metricValue=1`;
   if (t.includes("cloudfront")) return "aws cloudfront create-invalidation --distribution-id DISTRIBUTION_ID --paths '/*'";
   if (t.includes("route53")) return "aws route53 change-resource-record-sets --hosted-zone-id ZONE_ID --change-batch file://change-batch.json";
