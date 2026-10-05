@@ -53,6 +53,7 @@ export default function App() {
   const [activeCode, setActiveCode] = useState("");
   const [activeLanguage, setActiveLanguage] = useState("HTML");
   const [incomingAiQuery, setIncomingAiQuery] = useState("");
+  const [customApiKey, setCustomApiKey] = useState("");
   const [fullSearchMetadata, setFullSearchMetadata] = useState<ToolMetadata[] | null>(null);
   const activeCodeGetterRef = useRef<(() => { tab: string; code: string }) | null>(null);
   const applyCodeToEditorRef = useRef<((lang: string, code: string) => void) | null>(null);
@@ -317,6 +318,7 @@ export default function App() {
             <CodeEditor
               onSendToAI={handleSendCodeToAI}
               initialLanguage={activeLanguage}
+        customApiKey={customApiKey}
               selectedLanguage={activeLanguage}
               onLanguageChange={setActiveLanguage}
               registerActiveCodeGetter={(fn) => {
