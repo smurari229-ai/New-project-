@@ -44,6 +44,9 @@ jobs:
       - name: Specialized semantic regression check
         run: npx tsx scripts/specialized-semantic-smoke.ts
 
+      - name: Phase 10D deterministic semantic oracle matrix
+        run: npx tsx scripts/phase10d-semantic-oracle.ts
+
       - name: 1-1000 runtime smoke check
         run: npx tsx scripts/runtime-tool-smoke.ts
 
