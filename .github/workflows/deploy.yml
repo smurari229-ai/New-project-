@@ -74,7 +74,6 @@ jobs:
 
       - name: Phase 7 static 1-150 exhaustive edge acceptance
         run: |
-          npm install --no-save --no-package-lock @playwright/test@1.63.0
           npx playwright install --with-deps chromium
           npx playwright test --config=playwright.static-audit.config.ts
 
