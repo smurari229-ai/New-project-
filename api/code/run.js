@@ -60,7 +60,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const rate = checkRateLimit(req, "code-run", 10, 60_000);
+  const rate = await checkRateLimit(req, "code-run", 10, 60_000);
+  if (rate.backendError) {
+    return res.status(503).json({
+      error: "Distributed rate limiting is temporarily unavailable. Please retry shortly.",
+    });
+  }
   if (!rate.allowed) {
     res.setHeader("Retry-After", String(rate.retryAfter));
     return res.status(429).json({ error: "Too many code-run requests. Please retry shortly." });
@@ -119,7 +124,7 @@ ${code.slice(0, 10_000)}
 
     try {
       const { response, modelUsed } = await generateWithFallback(ai, {
-        preferredModel: "gemini-3.8-flash",
+        preferredModel: process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
       });
