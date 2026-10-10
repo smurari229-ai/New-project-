@@ -1418,7 +1418,7 @@ export const TOOL_1_METADATA: ToolMetadata = {
   id: 1,
   title: "Multi-Language Code Sandbox & Live Editor",
   category: "Code",
-  description: "Interactive live code editor for HTML/CSS/JS and multi-language virtual compiler.",
+  description: "Interactive live code editor for HTML/CSS/JS and multi-language AI-assisted virtual execution. Non-web languages are simulated, not natively compiled.",
   keywords: ["editor", "sandbox", "compiler", "ide", "run", "python", "html", "js"]
 };
 
