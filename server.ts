@@ -30,7 +30,7 @@ const SUPPORTED_SIMULATED_LANGUAGES = new Set([
 const PRIMARY_MODEL = process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash";
 const CANDIDATE_MODELS = [
   PRIMARY_MODEL,
-  ...String(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.7-flash,gemini-3.5-flash-lite")
+  ...String(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite")
     .split(",")
     .map((model) => model.trim())
     .filter((model) => model && model !== PRIMARY_MODEL),
