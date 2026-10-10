@@ -4,8 +4,10 @@ const FORBIDDEN_PLACEHOLDER_OUTPUTS = [
   "Verified active in 1000 Tools SuperHub",
   "Ready for deployment.",
   "Ready for production runtime.",
+  "Ready in production runtime.",
   "Generated starter output:",
   "Reference result:\nThis title has a dedicated result path",
+  "Processed query:",
 ];
 
 const failures: string[] = [];

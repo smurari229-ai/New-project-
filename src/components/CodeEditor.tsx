@@ -15,7 +15,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { LANGUAGE_CATALOG } from "../data/languages";
-import { safeCopyToClipboard, safeStorageGet } from "../utils/helpers";
+import { safeCopyToClipboard } from "../utils/helpers";
 
 interface CodeEditorProps {
   onSendToAI?: (code: string, language: string, promptText?: string) => void;
@@ -24,6 +24,7 @@ interface CodeEditorProps {
   onLanguageChange?: (lang: string) => void;
   registerActiveCodeGetter?: (fn: () => { tab: string; code: string }) => void;
   registerApplyCodeHandler?: (fn: (lang: string, code: string) => void) => void;
+  customApiKey?: string;
 }
 
 interface ConsoleLogItem {
@@ -40,6 +41,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onLanguageChange,
   registerActiveCodeGetter,
   registerApplyCodeHandler,
+  customApiKey = "",
 }) => {
   const [internalLang, setInternalLang] = useState(initialLanguage);
   const currentLang = selectedLanguage || internalLang;
@@ -313,14 +315,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       ]);
 
       try {
-        const customApiKey = safeStorageGet("csh_custom_key") || undefined;
         const res = await fetch("/api/code/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             language: currentLang,
             code: codeToRun,
-            customApiKey,
+            customApiKey: customApiKey.trim() || undefined,
           }),
         });
         let data: any;
