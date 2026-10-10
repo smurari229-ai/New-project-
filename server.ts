@@ -4,6 +4,8 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { checkDistributedRateLimit } from "./api/_lib/distributedRateLimit.js";
+import { sanitizeCustomApiKey, validateBoundedString } from "./api/_lib/security.js";
 
 dotenv.config();
 
@@ -25,11 +27,13 @@ const SUPPORTED_SIMULATED_LANGUAGES = new Set([
   "HCL / Terraform", "Protocol Buffers"
 ]);
 
-// Valid models from @google/genai guidelines with high-throughput fallbacks
+const PRIMARY_MODEL = process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash";
 const CANDIDATE_MODELS = [
-  "gemini-3.8-flash",
-  "gemini-flash-latest",
-  "gemini-3.1-flash-lite",
+  PRIMARY_MODEL,
+  ...String(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite")
+    .split(",")
+    .map((model) => model.trim())
+    .filter((model) => model && model !== PRIMARY_MODEL),
 ];
 
 function getGeminiErrorInfo(error: any) {
@@ -71,44 +75,19 @@ function isTransientError(error: any): boolean {
   );
 }
 
-function getClientIp(req: express.Request): string {
-  return String(req.ip || req.socket.remoteAddress || "unknown").trim() || "unknown";
-}
+function validateApiInput(promptOrCode: unknown, customApiKey: unknown, maxLength: number, label = "Input") {
+  const inputError = validateBoundedString(promptOrCode, maxLength, label);
+  if (inputError) return inputError;
 
-// Lightweight per-instance protection for Render/local full-stack deployments.
-// Vercel API routes have their own limiter; this keeps the alternate server path
-// from exposing an unbounded Gemini request surface.
-const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
-function checkRateLimit(req: express.Request, scope: string, limit: number, windowMs = 60_000) {
-  const now = Date.now();
-  const key = `${scope}:${getClientIp(req)}`;
-  const existing = rateLimitBuckets.get(key);
-  if (!existing || now >= existing.resetAt) {
-    rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfter: 0 };
+  if (
+    customApiKey !== undefined &&
+    customApiKey !== null &&
+    customApiKey !== "" &&
+    sanitizeCustomApiKey(customApiKey) === null
+  ) {
+    return "Custom API key is invalid";
   }
-  if (existing.count >= limit) {
-    return { allowed: false, retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)) };
-  }
-  existing.count += 1;
-  return { allowed: true, retryAfter: 0 };
-}
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, bucket] of rateLimitBuckets) {
-    if (now >= bucket.resetAt) rateLimitBuckets.delete(key);
-  }
-}, 5 * 60_000).unref();
-
-function validateApiInput(promptOrCode: unknown, customApiKey: unknown, maxLength: number) {
-  if (typeof promptOrCode !== "string" || !promptOrCode.trim()) return "Input is required";
-  if (promptOrCode.length > maxLength) return `Input exceeds the ${maxLength.toLocaleString()} character limit`;
-  if (customApiKey !== undefined && customApiKey !== null) {
-    if (typeof customApiKey !== "string" || customApiKey.length > MAX_CUSTOM_KEY_LENGTH) {
-      return "Custom API key is invalid or too long";
-    }
-  }
   return null;
 }
 
@@ -120,7 +99,7 @@ async function generateWithFallback(
     preferredModel?: string;
   }
 ) {
-  const preferred = params.preferredModel || "gemini-3.8-flash";
+  const preferred = params.preferredModel || PRIMARY_MODEL;
   const modelsToTry = [
     preferred,
     ...CANDIDATE_MODELS.filter((m) => m !== preferred),
@@ -175,8 +154,12 @@ async function startServer() {
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     res.setHeader("X-Frame-Options", "DENY");
-    const scriptSrc = process.env.NODE_ENV === "production" ? "script-src 'self';" : "script-src 'self' 'unsafe-inline';";
-    res.setHeader("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; " + scriptSrc + " style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://ipapi.co; frame-src 'self' blob:;");
+    if (process.env.NODE_ENV === "production") {
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com https://ipapi.co; frame-src 'self' blob:;"
+      );
+    }
     if (process.env.NODE_ENV === "production") {
       res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     }
@@ -190,7 +173,12 @@ async function startServer() {
 
   // Server-side Gemini AI generation endpoint
   app.post("/api/ai/ask", async (req, res) => {
-    const rate = checkRateLimit(req, "ai-ask", 20);
+    const rate = await checkDistributedRateLimit(req, "ai-ask", 20);
+    if (rate.backendError) {
+      return res.status(503).json({
+        error: "Distributed rate limiting is temporarily unavailable. Please retry shortly.",
+      });
+    }
     if (!rate.allowed) {
       res.setHeader("Retry-After", String(rate.retryAfter));
       return res.status(429).json({ error: "Too many AI requests. Please retry shortly." });
@@ -205,7 +193,7 @@ async function startServer() {
       }
 
       const apiKey =
-        (typeof customApiKey === "string" && customApiKey.trim()) ||
+        sanitizeCustomApiKey(customApiKey) ||
         process.env.GEMINI_API_KEY;
 
       if (!apiKey) {
@@ -259,7 +247,7 @@ Your goal:
       });
 
       const { response, modelUsed } = await generateWithFallback(ai, {
-        preferredModel: "gemini-3.8-flash",
+        preferredModel: PRIMARY_MODEL,
         contents,
         config: { systemInstruction },
       });
@@ -267,7 +255,12 @@ Your goal:
       const text = String(response.text || "No response generated.").slice(0, MAX_OUTPUT_LENGTH);
       return res.json({ answer: text, modelUsed });
     } catch (error: any) {
-      console.error("Gemini API error:", error);
+      const errorInfo = getGeminiErrorInfo(error);
+      console.error("[Gemini API] request failed", {
+        status: errorInfo.status || "unknown",
+        quota: isQuotaError(error),
+        transient: isTransientError(error),
+      });
       const isHighDemand = isTransientError(error);
       const isQuota = isQuotaError(error);
       const userMessage = isQuota
@@ -286,7 +279,12 @@ Your goal:
   // Multi-Language Code Runner Endpoint. This is intentionally AI-assisted
   // simulation, not a native compiler/runtime sandbox.
   app.post("/api/code/run", async (req, res) => {
-    const rate = checkRateLimit(req, "code-run", 10);
+    const rate = await checkDistributedRateLimit(req, "code-run", 10);
+    if (rate.backendError) {
+      return res.status(503).json({
+        error: "Distributed rate limiting is temporarily unavailable. Please retry shortly.",
+      });
+    }
     if (!rate.allowed) {
       res.setHeader("Retry-After", String(rate.retryAfter));
       return res.status(429).json({ error: "Too many code-run requests. Please retry shortly." });
@@ -389,7 +387,12 @@ ${code.trim().slice(0, MAX_CODE_LENGTH)}
 
       return res.json(parsed);
     } catch (error: any) {
-      console.error("Code runner API error:", error);
+      const errorInfo = getGeminiErrorInfo(error);
+      console.error("[Code Runner] request failed", {
+        status: errorInfo.status || "unknown",
+        quota: isQuotaError(error),
+        transient: isTransientError(error),
+      });
       return res.status(500).json({
         stdout: "",
         stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
