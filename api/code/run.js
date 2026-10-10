@@ -1,4 +1,5 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
+import { sanitizeCustomApiKey } from "../_lib/security.js";
 
 const MAX_OUTPUT_LENGTH = 40_000;
 const SUPPORTED_SIMULATED_LANGUAGES = new Set([
@@ -60,7 +61,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const rate = checkRateLimit(req, "code-run", 10, 60_000);
+  const rate = await checkRateLimit(req, "code-run", 10, 60_000);
+  if (rate.backendError) {
+    return res.status(503).json({
+      error: "Distributed rate limiting is temporarily unavailable. Please retry shortly.",
+    });
+  }
   if (!rate.allowed) {
     res.setHeader("Retry-After", String(rate.retryAfter));
     return res.status(429).json({ error: "Too many code-run requests. Please retry shortly." });
@@ -84,7 +90,12 @@ export default async function handler(req, res) {
       });
     }
 
-    const apiKey = getApiKey(customApiKey);
+    const sanitizedCustomApiKey = sanitizeCustomApiKey(customApiKey);
+    if (customApiKey !== undefined && customApiKey !== null && customApiKey !== "" && !sanitizedCustomApiKey) {
+      return res.status(400).json({ error: "Custom API key is invalid" });
+    }
+
+    const apiKey = getApiKey(sanitizedCustomApiKey);
     if (!apiKey) {
       return res.status(400).json({
         stdout: "",
@@ -119,7 +130,7 @@ ${code.slice(0, 10_000)}
 
     try {
       const { response, modelUsed } = await generateWithFallback(ai, {
-        preferredModel: "gemini-3.8-flash",
+        preferredModel: process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash",
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: { responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } },
       });
