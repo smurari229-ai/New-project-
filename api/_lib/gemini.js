@@ -4,7 +4,7 @@ import { sanitizeCustomApiKey } from "./security.js";
 
 const PRIMARY_MODEL = process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash";
 const FALLBACK_MODELS = String(
-  process.env.GEMINI_FALLBACK_MODELS || "gemini-3.7-flash,gemini-3.5-flash-lite"
+  process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite"
 )
   .split(",")
   .map((model) => model.trim())
