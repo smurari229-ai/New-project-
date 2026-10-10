@@ -35,7 +35,7 @@ test("dynamic tools expose runnable string-producing handlers", () => {
 
 test("Gemini model defaults and API-key validation are hardened", () => {
   assert.equal(CANDIDATE_MODELS[0], process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash");
-  assert.ok(CANDIDATE_MODELS.includes("gemini-3.6-flash"));
+  assert.ok(CANDIDATE_MODELS.includes("gemini-3.7-flash"));
   assert.ok(CANDIDATE_MODELS.includes("gemini-3.5-flash-lite"));
   assert.equal(getApiKey("  test-key  "), "test-key");
   assert.equal(getApiKey("bad\u0000key"), process.env.GEMINI_API_KEY || undefined);
