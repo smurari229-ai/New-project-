@@ -24,6 +24,8 @@ interface AIAssistantProps {
   currentCode?: string;
   getActiveCode?: () => { tab: string; code: string };
   onApplyCodeToEditor?: (tab: string, code: string) => void;
+  customApiKey?: string;
+  onCustomApiKeyChange?: (key: string) => void;
 }
 
 export const AIAssistant: React.FC<AIAssistantProps> = ({
@@ -32,11 +34,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   currentCode = "",
   getActiveCode,
   onApplyCodeToEditor,
+  customApiKey,
+  onCustomApiKeyChange,
 }) => {
   const [messages, setMessages] = useState<AIChatMessage[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [customKey, setCustomKey] = useState("");
+  const [customKey, setCustomKey] = useState(customApiKey || "");
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [showKeyText, setShowKeyText] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>(
@@ -61,9 +65,6 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   useEffect(() => {
-    const saved = safeStorageGet("csh_custom_key");
-    if (saved) setCustomKey(saved);
-
     const savedHistory = safeStorageGet("csh_ai_messages");
     if (savedHistory) {
       try {
@@ -95,13 +96,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
   const saveKey = (val: string) => {
     setCustomKey(val);
-    if (val.trim()) {
-      safeStorageSet("csh_custom_key", val.trim());
-      setStatusMsg("Custom Gemini key saved locally in this browser.");
-    } else {
-      safeStorageRemove("csh_custom_key");
-      setStatusMsg("Using default server-side Gemini configuration.");
-    }
+    onCustomApiKeyChange?.(val);
+    setStatusMsg(
+      val.trim()
+        ? "Custom Gemini key is held in memory only for this session and shared with the virtual runner."
+        : "Using default server-side Gemini configuration."
+    );
   };
 
   const handleSend = async (customPrompt?: string) => {
@@ -281,13 +281,13 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       {/* Key input drawer if requested */}
       {showKeyInput && (
         <div className="mt-3 p-3 bg-indigo-950/70 rounded-xl border border-indigo-800/60 text-xs flex flex-wrap items-center gap-2">
-          <span className="text-indigo-200">Custom Gemini Key (Optional):</span>
+          <span className="text-indigo-200">Custom Gemini Key (Optional, session only):</span>
           <div className="relative flex-1 min-w-[220px]">
             <input
               type={showKeyText ? "text" : "password"}
               value={customKey}
               onChange={(e) => saveKey(e.target.value)}
-              placeholder="Leave empty to use automatic server key..."
+              placeholder="Leave empty to use automatic server key; key is not persisted..."
               className="w-full pl-3 pr-8 py-1.5 bg-slate-900 border border-indigo-700/60 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400"
             />
             <button
