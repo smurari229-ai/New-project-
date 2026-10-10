@@ -1,53 +1,26 @@
 import { GoogleGenAI } from "@google/genai";
+import { checkDistributedRateLimit } from "./distributedRateLimit.js";
+import { sanitizeCustomApiKey } from "./security.js";
+
+const PRIMARY_MODEL = process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash";
+const FALLBACK_MODELS = String(
+  process.env.GEMINI_FALLBACK_MODELS || "gemini-3.6-flash,gemini-3.5-flash-lite"
+)
+  .split(",")
+  .map((model) => model.trim())
+  .filter(Boolean);
 
 export const CANDIDATE_MODELS = [
-  "gemini-3.8-flash",
-  "gemini-flash-latest",
-  "gemini-3.1-flash-lite",
+  PRIMARY_MODEL,
+  ...FALLBACK_MODELS.filter((model) => model !== PRIMARY_MODEL),
 ];
 
-const MAX_CUSTOM_API_KEY_LENGTH = 256;
-
-// Lightweight per-instance guard for public AI endpoints. Vercel Firewall can
-// provide stronger global protection, but this also protects the downstream
-// Gemini key when a request reaches a function instance.
-const rateLimitBuckets = new Map();
-
-function getClientIp(req) {
-  const forwarded = req?.headers?.["x-forwarded-for"] || req?.headers?.get?.("x-forwarded-for");
-  const realIp = req?.headers?.["x-real-ip"] || req?.headers?.get?.("x-real-ip");
-  return String(forwarded || realIp || "unknown").split(",")[0].trim() || "unknown";
+export function getPrimaryModel() {
+  return PRIMARY_MODEL;
 }
 
-export function checkRateLimit(req, scope, limit = 20, windowMs = 60_000) {
-  const now = Date.now();
-  const key = `${scope}:${getClientIp(req)}`;
-  const existing = rateLimitBuckets.get(key);
-
-  if (!existing || now >= existing.resetAt) {
-    rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfter: 0 };
-  }
-
-  if (existing.count >= limit) {
-    return {
-      allowed: false,
-      retryAfter: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
-    };
-  }
-
-  existing.count += 1;
-  return { allowed: true, retryAfter: 0 };
-}
-
-// Prevent unbounded growth in long-lived Node instances.
-if (typeof setInterval === "function") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, bucket] of rateLimitBuckets) {
-      if (now >= bucket.resetAt) rateLimitBuckets.delete(key);
-    }
-  }, 5 * 60_000).unref?.();
+export async function checkRateLimit(req, scope, limit = 20, windowMs = 60_000) {
+  return checkDistributedRateLimit(req, scope, limit, windowMs);
 }
 
 function getGeminiErrorInfo(error) {
@@ -90,7 +63,7 @@ export function isTransientError(error) {
 }
 
 export async function generateWithFallback(ai, params) {
-  const preferred = params.preferredModel || "gemini-3.8-flash";
+  const preferred = params.preferredModel || PRIMARY_MODEL;
   const modelsToTry = [
     preferred,
     ...CANDIDATE_MODELS.filter((model) => model !== preferred),
@@ -129,12 +102,8 @@ export async function generateWithFallback(ai, params) {
 }
 
 export function getApiKey(customApiKey) {
-  if (typeof customApiKey === "string" && customApiKey.trim()) {
-    const key = customApiKey.trim();
-    if (key.length > MAX_CUSTOM_API_KEY_LENGTH) return null;
-    return key;
-  }
-  return process.env.GEMINI_API_KEY;
+  const key = sanitizeCustomApiKey(customApiKey);
+  return key || process.env.GEMINI_API_KEY;
 }
 
 export function createGemini(apiKey) {
