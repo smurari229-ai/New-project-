@@ -185,7 +185,7 @@ ${code.slice(0, 10_000)}
     console.error("Code runner API error:", error);
     return res.status(500).json({
       stdout: "",
-      stderr: `Runner Error: ${error?.message || "Execution failed"}`.slice(0, MAX_OUTPUT_LENGTH),
+      stderr: "Virtual runner request failed. Check the Gemini API key/model access and retry.",
       exitCode: 1,
       executionTime: "0.00s",
       notes: "Execution halted",
