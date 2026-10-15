@@ -20,8 +20,14 @@ export function getClientIp(req) {
 }
 
 function getRedisConfig() {
-  const url = String(process.env.UPSTASH_REDIS_REST_URL || "").trim().replace(/\/$/, "");
-  const token = String(process.env.UPSTASH_REDIS_REST_TOKEN || "").trim();
+  // Vercel Marketplace Upstash installs commonly expose KV_REST_API_URL/TOKEN;
+  // keep the explicit Upstash names as the preferred configuration.
+  const url = String(
+    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || "",
+  ).trim().replace(/\/$/, "");
+  const token = String(
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || "",
+  ).trim();
   return url && token ? { url, token } : null;
 }
 
