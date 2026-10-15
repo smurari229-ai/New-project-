@@ -89,7 +89,7 @@ test("distributed rate limiter accepts Vercel Upstash KV environment names", asy
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
     process.env.KV_REST_API_URL = "https://example-upstash.test";
     process.env.KV_REST_API_TOKEN = "test-token";
-    globalThis.fetch = (async (input) => {
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
       requestedUrl = String(input);
       return {
         ok: true,
