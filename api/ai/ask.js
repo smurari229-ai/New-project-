@@ -1,4 +1,5 @@
 import { createGemini, generateWithFallback, getApiKey, isTransientError, isQuotaError, checkRateLimit } from "../_lib/gemini.js";
+import { sanitizeCustomApiKey } from "../_lib/security.js";
 
 const MAX_PROMPT_LENGTH = 20_000;
 const MAX_LANGUAGE_LENGTH = 100;
@@ -11,7 +12,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const rate = checkRateLimit(req, "ai-ask", 20, 60_000);
+  const rate = await checkRateLimit(req, "ai-ask", 20, 60_000);
+  if (rate.backendError) {
+    return res.status(503).json({
+      error: "Distributed rate limiting is temporarily unavailable. Please retry shortly.",
+    });
+  }
   if (!rate.allowed) {
     res.setHeader("Retry-After", String(rate.retryAfter));
     return res.status(429).json({ error: "Too many AI requests. Please retry shortly." });
@@ -30,7 +36,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Language value is invalid" });
     }
 
-    const apiKey = getApiKey(customApiKey);
+    const sanitizedCustomApiKey = sanitizeCustomApiKey(customApiKey);
+    if (customApiKey !== undefined && customApiKey !== null && customApiKey !== "" && !sanitizedCustomApiKey) {
+      return res.status(400).json({ error: "Custom API key is invalid" });
+    }
+
+    const apiKey = getApiKey(sanitizedCustomApiKey);
     if (!apiKey) {
       return res.status(400).json({
         error: "No Gemini API key available. Please configure GEMINI_API_KEY in the environment or provide a key in the AI Assistant panel.",
@@ -72,7 +83,7 @@ Your goal:
 
     // Gemini 3.8 Flash no longer accepts legacy sampling parameters such as temperature.
     const { response, modelUsed } = await generateWithFallback(ai, {
-      preferredModel: "gemini-3.8-flash",
+      preferredModel: process.env.GEMINI_PRIMARY_MODEL || "gemini-3.8-flash",
       contents,
       config: { systemInstruction },
     });

@@ -1,8 +1,12 @@
-name: Build Check
+name: CI
 
 on:
   push:
-    branches: ["main", "repair-tools-956-1000-2026-09-14", "hardening-ci-lockfile-2026-09-15"]
+    branches:
+      - "main"
+      - "phase10b-deep-hardening-2026-10-06"
+      - "repair-tools-956-1000-2026-09-14"
+      - "hardening-ci-lockfile-2026-09-15"
   pull_request:
     branches: ["main"]
   workflow_dispatch:
@@ -32,6 +36,15 @@ jobs:
       - name: TypeScript check
         run: npm run lint
 
+      - name: Unit and security tests
+        run: npm run test
+
+      - name: Unit test coverage
+        run: npm run test:coverage
+
+      - name: Security policy regression check
+        run: npm run test:security
+
       - name: Tool source integrity
         run: node scripts/verify-tools.mjs
 
@@ -43,6 +56,9 @@ jobs:
 
       - name: Specialized semantic regression check
         run: npx tsx scripts/specialized-semantic-smoke.ts
+
+      - name: Phase 10D deterministic semantic oracle matrix
+        run: npx tsx scripts/phase10d-semantic-oracle.ts
 
       - name: 1-1000 runtime smoke check
         run: npx tsx scripts/runtime-tool-smoke.ts
@@ -58,7 +74,6 @@ jobs:
 
       - name: Phase 7 static 1-150 exhaustive edge acceptance
         run: |
-          npm install --no-save --no-package-lock @playwright/test@1.63.0
           npx playwright install --with-deps chromium
           npx playwright test --config=playwright.static-audit.config.ts
 
