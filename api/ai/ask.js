@@ -102,7 +102,7 @@ Your goal:
         ? "Gemini usage quota/rate limit has been reached. The request was not retried across fallback models. Please wait for the quota window to reset or use your own Gemini API key."
         : isHighDemand
           ? "This model is currently experiencing temporary high demand on Google servers. Automatic retries were attempted across fallback models. Please try again in a few seconds, or supply your personal Gemini API key in the panel settings."
-          : error?.message || "Failed to process AI request",
+          : "Gemini request failed. Check the server API key and model access, then retry.",
       isHighDemand,
       isQuota,
     });
