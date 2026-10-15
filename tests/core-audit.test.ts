@@ -74,6 +74,55 @@ test("distributed rate limiter fails closed in production when Redis is missing"
   }
 });
 
+test("distributed rate limiter accepts Vercel Upstash KV environment names", async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const previousKvUrl = process.env.KV_REST_API_URL;
+  const previousKvToken = process.env.KV_REST_API_TOKEN;
+  const previousFetch = globalThis.fetch;
+  let requestedUrl = "";
+
+  try {
+    process.env.NODE_ENV = "production";
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    process.env.KV_REST_API_URL = "https://example-upstash.test";
+    process.env.KV_REST_API_TOKEN = "test-token";
+    globalThis.fetch = (async (input) => {
+      requestedUrl = String(input);
+      return {
+        ok: true,
+        json: async () => ({ result: "OK" }),
+      } as Response;
+    }) as typeof fetch;
+
+    const result = await checkDistributedRateLimit(
+      { headers: {}, socket: { remoteAddress: "127.0.0.1" } },
+      "kv-env-test",
+      1,
+      60_000,
+    );
+
+    assert.equal(result.allowed, true);
+    assert.equal(result.backendError, false);
+    assert.equal(result.configured, true);
+    assert.ok(requestedUrl.startsWith("https://example-upstash.test/set/"));
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+    if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+    else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+    if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+    if (previousKvUrl === undefined) delete process.env.KV_REST_API_URL;
+    else process.env.KV_REST_API_URL = previousKvUrl;
+    if (previousKvToken === undefined) delete process.env.KV_REST_API_TOKEN;
+    else process.env.KV_REST_API_TOKEN = previousKvToken;
+    globalThis.fetch = previousFetch;
+  }
+});
+
 test("production security configuration is represented in repository files", () => {
   const vercel = fs.readFileSync(path.join(root, "vercel.json"), "utf8");
   const server = fs.readFileSync(path.join(root, "server.ts"), "utf8");
